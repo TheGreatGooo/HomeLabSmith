@@ -1,0 +1,10 @@
+[
+    {
+        "pattern": "/api/users",
+        "endpoint": "http://localhost:8080/health"
+    },
+    {
+        "pattern": "/api/products",
+        "endpoint": "http://localhost:8080/heartbeat"
+    }
+]
