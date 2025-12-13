@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: lscr.io/linuxserver/nginx:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+        - name: config-volume
+          mountPath: /config
+      - name: nginx-monitor
+        image: nginx-endpoint-activity-monitor:latest
+        volumeMounts:
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+          readOnly: true
+        - name: config-volume
+          mountPath: /config.json
+          subPath: config.json
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config-map
+      - name: nginx-logs
+        emptyDir: {}
+      - name: config-volume
+        configMap:
+          name: nginx-config-map
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
