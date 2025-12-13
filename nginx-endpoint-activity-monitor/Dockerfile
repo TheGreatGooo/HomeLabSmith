@@ -28,3 +28,11 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Run the application
 CMD ["python3", "nginx_endpoint_activity_monitor.py"]
+
+# Add labels for GitHub Container Registry
+LABEL org.opencontainers.image.source="https://github.com/TheGreatGooo/HomeLabSmith"
+LABEL org.opencontainers.image.description="Nginx Endpoint Activity Monitor"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.vendor="HomeLabSmith"
+LABEL org.opencontainers.image.title="nginx-endpoint-activity-monitor"
+LABEL org.opencontainers.image.version="1.0.0"

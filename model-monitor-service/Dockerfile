@@ -22,3 +22,11 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Run the application
 CMD ["python", "model_monitor.py"]
+
+# Add labels for GitHub Container Registry
+LABEL org.opencontainers.image.source="https://github.com/TheGreatGooo/HomeLabSmith"
+LABEL org.opencontainers.image.description="Model Monitor Service"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.vendor="HomeLabSmith"
+LABEL org.opencontainers.image.title="model-monitor-service"
+LABEL org.opencontainers.image.version="1.0.0"
