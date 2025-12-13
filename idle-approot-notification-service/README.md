@@ -1,4 +1,4 @@
-# Nginx Monitoring Service
+# Idle Approot Notification Service
 
 A Python service that monitors nginx access logs and triggers HTTP endpoints when specific URI patterns haven't been called in the last 10 minutes.
 
@@ -35,16 +35,16 @@ Each rule consists of:
 
 1. Build the Docker image:
    ```bash
-   docker build -t nginx-monitor .
+   docker build -t idle-approot-notification .
    ```
 
 2. Run the service:
    ```bash
    docker run -d \
-     --name nginx-monitor \
+     --name idle-approot-notification \
      -v /var/log/nginx:/var/log/nginx:ro \
      -v $(pwd)/config.json:/config.json:ro \
-     nginx-monitor
+     idle-approot-notification
    ```
 
 ## Usage
@@ -57,4 +57,4 @@ The service will automatically:
 
 ## Logging
 
-All logs are written to `/var/log/nginx-monitor.log` and stdout.
+All logs are written to `/var/log/idle-approot-notification.log` and stdout.

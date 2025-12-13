@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Nginx Monitoring Service
+Idle Approot Notification Service
 Tails nginx logs and checks for endpoints that haven't been called in the last 10 minutes.
 If an endpoint hasn't been called, it makes an HTTP request to a defined endpoint.
 """
@@ -157,7 +157,7 @@ class NginxMonitor:
                 async with session.get(
                     endpoint_config['endpoint'],
                     timeout=aiohttp.ClientTimeout(total=30),
-                    headers={'User-Agent': 'nginx-monitor/1.0'}
+                    headers={'User-Agent': 'idle-approot-notification/1.0'}
                 ) as response:
                     if response.status == 200:
                         logger.info(f"Successfully called endpoint: {endpoint_config['endpoint']}")
@@ -251,7 +251,7 @@ class NginxMonitor:
         """
         Start the monitoring service
         """
-        logger.info("Starting Nginx Monitor Service")
+        logger.info("Starting Idle Approot Notification Service")
         self.running = True
         
         # Get log file path from environment or use default
@@ -266,7 +266,7 @@ class NginxMonitor:
         # Run both tasks concurrently
         await asyncio.gather(*tasks, return_exceptions=True)
         
-        logger.info("Nginx Monitor Service stopped")
+        logger.info("Idle Approot Notification Service stopped")
 
     async def _monitor_loop(self):
         """
