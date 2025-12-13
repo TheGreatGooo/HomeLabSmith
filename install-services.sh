@@ -27,6 +27,18 @@ echo "Creating required directories..."
 sudo mkdir -p /var/lib/home-lab-services
 sudo mkdir -p /config/models
 sudo chown home-lab-services:home-lab-services /var/lib/home-lab-services
+sudo chown home-lab-services:home-lab-services /config/models
+
+# Create directories for service code if they don't exist
+echo "Creating service code directories..."
+sudo mkdir -p /config/HomeLabSmith/shutdown-service
+sudo mkdir -p /config/HomeLabSmith/inference-service
+
+# Copy service files to systemd directory (requires sudo)
+echo "Copying service files to systemd directory..."
+sudo cp shutdown-service/systemd/shutdown-service.service /etc/systemd/system/
+sudo cp inference-service/systemd/inference-service.service /etc/systemd/system/
+sudo cp home-lab-services.service /etc/systemd/system/
 
 # Copy Python service files to expected locations
 echo "Copying Python service files..."
@@ -36,13 +48,6 @@ sudo cp inference-service/inference_service.py /config/HomeLabSmith/inference-se
 # Set proper permissions on service files
 sudo chown home-lab-services:home-lab-services /config/HomeLabSmith/shutdown-service/shutdown_service.py
 sudo chown home-lab-services:home-lab-services /config/HomeLabSmith/inference-service/inference_service.py
-sudo chown home-lab-services:home-lab-services /config/models
-
-# Copy service files to systemd directory (requires sudo)
-echo "Copying service files to systemd directory..."
-sudo cp shutdown-service/systemd/shutdown-service.service /etc/systemd/system/
-sudo cp inference-service/systemd/inference-service.service /etc/systemd/system/
-sudo cp home-lab-services.service /etc/systemd/system/
 
 # Reload systemd configuration
 echo "Reloading systemd configuration..."
