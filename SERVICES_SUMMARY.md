@@ -11,7 +11,7 @@ This project provides a comprehensive systemd service configuration for managing
 ### Shutdown Service (`shutdown-service.service`)
 - **Purpose**: Exposes REST endpoints to manage system shutdowns
 - **Port**: 5001
-- **User**: `abc` (regular user)
+- **User**: `home-lab-services` (dedicated service user)
 - **Key Features**:
   - Schedule shutdowns with configurable delay
   - Cancel scheduled shutdowns
@@ -22,7 +22,7 @@ This project provides a comprehensive systemd service configuration for managing
 ### Inference Service (`inference-service.service`)
 - **Purpose**: Manages machine learning model services using systemctl
 - **Port**: 5002
-- **User**: `abc` (regular user)
+- **User**: `home-lab-services` (dedicated service user)
 - **Key Features**:
   - List available inference models
   - Start, stop, and restart models
@@ -37,14 +37,14 @@ This project provides a comprehensive systemd service configuration for managing
 ## Configuration Details
 
 ### Security Features
-- **User Isolation**: Both services run under the `abc` user for security
+- **User Isolation**: Both services run under the dedicated `home-lab-services` user for security
 - **Root Privilege Separation**: Only required for shutdown commands, not general operation
 - **Resource Limits**: Configured with limits to prevent resource exhaustion
 - **Security Hardening**: Uses systemd security features like `PrivateTmp=true`, `ProtectSystem=strict`
 
 ### Logging Configuration
 - **Standard Output**: Journal logging
-- **Standard Error**: Journal logging  
+- **Standard Error**: Journal logging
 - **Syslog Identifier**: Unique identifiers for each service
 - **Log Management**: Integrated with system logging infrastructure
 
@@ -54,11 +54,9 @@ This project provides a comprehensive systemd service configuration for managing
 
 ## Installation Process
 
-1. **Copy Service Files**:
+1. **Run the installation script** (creates dedicated user/group if needed):
    ```bash
-   sudo cp shutdown-service.service /etc/systemd/system/
-   sudo cp inference-service.service /etc/systemd/system/
-   sudo cp home-lab-services.service /etc/systemd/system/
+   ./install-services.sh
    ```
 
 2. **Reload Configuration**:

@@ -6,8 +6,8 @@ Requires=network.target
 
 [Service]
 Type=simple
-User=abc
-Group=abc
+User=home-lab-services
+Group=home-lab-services
 WorkingDirectory=/config/HomeLabSmith/inference-service
 Restart=always
 RestartSec=10

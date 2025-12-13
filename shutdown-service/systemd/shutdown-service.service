@@ -6,8 +6,8 @@ Requires=network.target
 
 [Service]
 Type=simple
-User=abc
-Group=abc
+User=home-lab-services
+Group=home-lab-services
 WorkingDirectory=/config/HomeLabSmith/shutdown-service
 Restart=always
 RestartSec=10
@@ -27,9 +27,6 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ReadWritePaths=/config/HomeLabSmith/shutdown-service
-# User permissions for shutdown commands
-User=root
-Group=root
 
 [Install]
 WantedBy=multi-user.target

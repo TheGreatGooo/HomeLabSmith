@@ -24,8 +24,8 @@ This service manages system shutdown scheduling and execution.
 - Integrates with psutil for system information
 
 #### Configuration:
-- **User**: `abc` (regular user)
-- **Group**: `abc`
+- **User**: `home-lab-services` (dedicated service user)
+- **Group**: `home-lab-services` (dedicated service group)
 - **Working Directory**: `/config/HomeLabSmith/shutdown-service`
 - **Restart Policy**: Always restart with 10 second delay
 - **Logging**: Journal logging with syslog identifier `shutdown-service`
@@ -41,8 +41,8 @@ This service manages machine learning model services using systemctl.
 - Supports start, stop, and restart operations for models
 
 #### Configuration:
-- **User**: `abc` (regular user)
-- **Group**: `abc`
+- **User**: `home-lab-services` (dedicated service user)
+- **Group**: `home-lab-services` (dedicated service group)
 - **Working Directory**: `/config/HomeLabSmith/inference-service`
 - **Restart Policy**: Always restart with 10 second delay
 - **Logging**: Journal logging with syslog identifier `inference-service`
@@ -58,11 +58,9 @@ This service acts as a manager that ensures both services are running and proper
 
 ## Installation Instructions
 
-1. **Copy service files to systemd directory:**
+1. **Run the installation script** (creates dedicated user/group if needed):
    ```bash
-   sudo cp shutdown-service.service /etc/systemd/system/
-   sudo cp inference-service.service /etc/systemd/system/
-   sudo cp home-lab-services.service /etc/systemd/system/
+   ./install-services.sh
    ```
 
 2. **Reload systemd configuration:**
@@ -116,7 +114,7 @@ sudo systemctl stop home-lab-services.service
 
 ## Security Considerations
 
-1. **User Permissions**: Both services run under the `abc` user for security isolation
+1. **User Permissions**: Both services run under the dedicated `home-lab-services` user for security isolation
 2. **Root Privileges**: The shutdown service requires root privileges only for shutdown commands, not for general operation
 3. **Resource Limits**: Configured with limits to prevent resource exhaustion
 4. **Security Hardening**: Uses `PrivateTmp=true`, `ProtectSystem=strict`, and `NoNewPrivileges=true`

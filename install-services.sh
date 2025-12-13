@@ -13,9 +13,19 @@ if [[ $EUID -eq 0 ]]; then
    exit 1
 fi
 
+# Create dedicated user and group for home lab services if they don't exist
+echo "Creating dedicated user and group for Home Lab Services..."
+if ! id "home-lab-services" &>/dev/null; then
+    sudo useradd -r -s /bin/false -d /var/lib/home-lab-services home-lab-services
+    echo "Created user: home-lab-services"
+else
+    echo "User home-lab-services already exists"
+fi
+
 # Create necessary directories
 echo "Creating required directories..."
-mkdir -p /home/abc/models/configs
+sudo mkdir -p /var/lib/home-lab-services
+sudo chown home-lab-services:home-lab-services /var/lib/home-lab-services
 
 # Copy service files to systemd directory (requires sudo)
 echo "Copying service files to systemd directory..."
