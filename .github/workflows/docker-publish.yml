@@ -125,4 +125,8 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-endpoint-activity-monitor:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:${{ github.sha }}
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+        run: |
+          TAGS="${TAGS}"
+          for tag in $TAGS; do
+            cosign sign --yes "${tag}"
+          done
