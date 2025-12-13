@@ -1,0 +1,10 @@
+{
+  "service": {
+    "port": 5001,
+    "host": "0.0.0.0"
+  },
+  "shutdown": {
+    "default_minutes": 1,
+    "lock_file": "shutdown.lock"
+  }
+}
