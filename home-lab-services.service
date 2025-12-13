@@ -1,6 +1,6 @@
 [Unit]
 Description=Home Lab Services Manager
-Documentation=https://github.com/your-repo/home-lab-services
+Documentation=https://github.com/TheGreatGooo/HomeLabSmith
 After=network.target
 Requires=shutdown-service.service inference-service.service
 
