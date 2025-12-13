@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Idle Approot Notification Service
-Tails nginx logs and checks for endpoints that haven't been called in the last 10 minutes.
-If an endpoint hasn't been called, it makes an HTTP request to a defined endpoint.
+Nginx Endpoint Activity Monitor
+Monitors nginx access logs for endpoint activity and triggers configured endpoints when patterns are inactive.
+Every 10 minutes, checks if configured URI patterns have been active and calls endpoints when they haven't been.
 """
 
 import asyncio
@@ -43,6 +43,7 @@ class NginxMonitor:
         self.config = self._load_config()
         self.running = False
         self.last_seen_timestamps: Dict[str, datetime] = {}
+        self.active_patterns: Dict[str, bool] = {}
         
         # Setup signal handlers for graceful shutdown
         signal.signal(signal.SIGTERM, self._signal_handler)
@@ -157,7 +158,7 @@ class NginxMonitor:
                 async with session.get(
                     endpoint_config['endpoint'],
                     timeout=aiohttp.ClientTimeout(total=30),
-                    headers={'User-Agent': 'idle-approot-notification/1.0'}
+                    headers={'User-Agent': 'nginx-endpoint-activity-monitor/1.0'}
                 ) as response:
                     if response.status == 200:
                         logger.info(f"Successfully called endpoint: {endpoint_config['endpoint']}")
@@ -192,31 +193,36 @@ class NginxMonitor:
         
         # Update last seen timestamp for this endpoint
         self.last_seen_timestamps[endpoint_config['pattern']] = timestamp
+        
+        # Mark pattern as active
+        self.active_patterns[endpoint_config['pattern']] = True
 
-    async def _check_stale_endpoints(self):
+    async def _report_active_patterns(self):
         """
-        Check for endpoints that haven't been called in the last 10 minutes
+        Report patterns that have received activity every 10 minutes
         """
         current_time = datetime.now()
-        ten_minutes_ago = current_time - timedelta(minutes=10)
         
-        logger.debug(f"Checking for stale endpoints (last seen before {ten_minutes_ago})")
+        # Reset active patterns tracking for this reporting cycle
+        active_patterns_list = list(self.active_patterns.keys())
+        self.active_patterns.clear()
         
-        # Create a list of tasks to run concurrently
-        tasks = []
-        for rule in self.config:
-            pattern = rule['pattern']
+        if active_patterns_list:
+            logger.info(f"Active patterns in last 10 minutes: {', '.join(active_patterns_list)}")
             
-            # Check if we have a timestamp for this pattern
-            last_seen = self.last_seen_timestamps.get(pattern)
+            # Optionally make HTTP requests to report activity (if configured)
+            tasks = []
+            for pattern in active_patterns_list:
+                for rule in self.config:
+                    if rule['pattern'] == pattern:
+                        logger.info(f"Reporting activity for pattern: {pattern}")
+                        tasks.append(self._check_endpoint(rule))
+                        break
             
-            # If no timestamp exists or it's older than 10 minutes, call the endpoint
-            if not last_seen or last_seen < ten_minutes_ago:
-                logger.info(f"Endpoint {pattern} hasn't been called since {last_seen or 'never'} - calling {rule['endpoint']}")
-                tasks.append(self._check_endpoint(rule))
-        
-        # Run all HTTP requests concurrently
-        await asyncio.gather(*tasks, return_exceptions=True)
+            # Run all HTTP requests concurrently
+            await asyncio.gather(*tasks, return_exceptions=True)
+        else:
+            logger.info("No patterns were active in the last 10 minutes")
 
     async def _tail_log_file(self, log_file_path: str):
         """
@@ -251,7 +257,7 @@ class NginxMonitor:
         """
         Start the monitoring service
         """
-        logger.info("Starting Idle Approot Notification Service")
+        logger.info("Starting Nginx Endpoint Activity Monitor")
         self.running = True
         
         # Get log file path from environment or use default
@@ -266,19 +272,19 @@ class NginxMonitor:
         # Run both tasks concurrently
         await asyncio.gather(*tasks, return_exceptions=True)
         
-        logger.info("Idle Approot Notification Service stopped")
+        logger.info("Nginx Endpoint Activity Monitor stopped")
 
     async def _monitor_loop(self):
         """
-        Main monitoring loop that checks for stale endpoints every 30 seconds
+        Main monitoring loop that reports active patterns every 10 minutes
         """
         while self.running:
             try:
-                # Check for stale endpoints every 30 seconds
-                await self._check_stale_endpoints()
+                # Report active patterns every 10 minutes (600 seconds)
+                await self._report_active_patterns()
                 
-                # Wait for 30 seconds before next check
-                await asyncio.sleep(30)
+                # Wait for 10 minutes before next check
+                await asyncio.sleep(600)
                 
             except Exception as e:
                 logger.error(f"Error in monitoring loop: {e}")

@@ -1,13 +1,13 @@
-# Idle Approot Notification Service
+# Nginx Endpoint Activity Monitor
 
-A Python service that monitors nginx access logs and triggers HTTP endpoints when specific URI patterns haven't been called in the last 10 minutes.
+A Python service that monitors nginx access logs for endpoint activity and triggers configured HTTP endpoints when URI patterns haven't been active for a specified period.
 
 ## Features
 
 - Tails nginx access log file
 - Monitors specific URI patterns defined in configuration
 - Checks every 30 seconds if a pattern has been seen in the last 10 minutes
-- Makes HTTP POST requests to configured endpoints when patterns are stale
+- Makes HTTP requests to configured endpoints when patterns are inactive
 - Logs all activities to file and stdout
 
 ## Configuration
@@ -35,16 +35,16 @@ Each rule consists of:
 
 1. Build the Docker image:
    ```bash
-   docker build -t idle-approot-notification .
+   docker build -t nginx-endpoint-activity-monitor .
    ```
 
 2. Run the service:
    ```bash
    docker run -d \
-     --name idle-approot-notification \
+     --name nginx-endpoint-activity-monitor \
      -v /var/log/nginx:/var/log/nginx:ro \
      -v $(pwd)/config.json:/config.json:ro \
-     idle-approot-notification
+     nginx-endpoint-activity-monitor
    ```
 
 ## Usage
@@ -57,4 +57,4 @@ The service will automatically:
 
 ## Logging
 
-All logs are written to `/var/log/idle-approot-notification.log` and stdout.
+All logs are written to `/var/log/nginx-endpoint-activity-monitor.log` and stdout.
