@@ -23,8 +23,7 @@ env:
 
 
 jobs:
-  build:
-
+  build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -61,38 +60,70 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Extract metadata (tags, labels) for Docker
-      # https://github.com/docker/metadata-action
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
-      - name: Build and push Docker image
-        id: build-and-push
+      # Build and push each service's Docker image
+      - name: Build and push inference-service
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
-          context: .
+          context: ./inference-service
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-inference-service:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.title=inference-service
+            org.opencontainers.image.version=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/TheGreatGooo/HomeLabSmith
 
-      # Sign the resulting Docker image digest except on PRs.
-      # This will only write to the public Rekor transparency log when the Docker
-      # repository is public to avoid leaking data.  If you would like to publish
-      # transparency data even for private images, pass --force to cosign below.
-      # https://github.com/sigstore/cosign
-      - name: Sign the published Docker image
+      - name: Build and push model-monitor-service
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        with:
+          context: ./model-monitor-service
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-model-monitor-service:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.title=model-monitor-service
+            org.opencontainers.image.version=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/TheGreatGooo/HomeLabSmith
+
+      - name: Build and push nginx-endpoint-activity-monitor
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        with:
+          context: ./nginx-endpoint-activity-monitor
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-endpoint-activity-monitor:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.title=nginx-endpoint-activity-monitor
+            org.opencontainers.image.version=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/TheGreatGooo/HomeLabSmith
+
+      - name: Build and push shutdown-service
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        with:
+          context: ./shutdown-service
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.title=shutdown-service
+            org.opencontainers.image.version=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/TheGreatGooo/HomeLabSmith
+
+      - name: Build and push wol-service
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        with:
+          context: ./wol-service
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.title=wol-service
+            org.opencontainers.image.version=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/TheGreatGooo/HomeLabSmith
+
+      # Sign the resulting Docker image digests except on PRs.
+      - name: Sign the published Docker images
         if: ${{ github.event_name != 'pull_request' }}
         env:
-          # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
-          TAGS: ${{ steps.meta.outputs.tags }}
-          DIGEST: ${{ steps.build-and-push.outputs.digest }}
-        # This step uses the identity token to provision an ephemeral certificate
-        # against the sigstore community Fulcio instance.
+          TAGS: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-inference-service:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-model-monitor-service:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-endpoint-activity-monitor:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:${{ github.sha }}
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
