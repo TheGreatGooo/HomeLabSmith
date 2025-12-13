@@ -14,8 +14,8 @@ RestartSec=10
 Environment=PYTHONPATH=/config/HomeLabSmith
 Environment=FLASK_ENV=production
 Environment=MODELS_CONFIG_DIR=/config/models
-# Executable path
-ExecStart=/var/lib/home-lab-services/inference-venv/bin/python3 /config/HomeLabSmith/inference-service/inference_service.py
+# Executable path - using Gunicorn for production
+ExecStart=/var/lib/home-lab-services/inference-venv/bin/gunicorn --bind 0.0.0.0:5002 --workers 2 --timeout 120 --keep-alive 5 --max-requests 1000 --max-requests-jitter 100 application:app
 # Logging configuration
 StandardOutput=journal
 StandardError=journal

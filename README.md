@@ -35,6 +35,12 @@ The system consists of three main systemd services:
 - Configured with resource limits (65536 file descriptors, 4096 processes)
 - Secure system protection with private temporary directories
 - Virtual environment: `/var/lib/home-lab-services/shutdown-venv`
+- Production WSGI server: Gunicorn with 2 workers
+- Environment variables: PYTHONPATH=/config/HomeLabSmith, FLASK_ENV=production
+
+Inference Service:
+- Virtual environment: `/var/lib/home-lab-services/inference-venv`
+- Production WSGI server: Gunicorn with 2 workers
 - Environment variables: PYTHONPATH=/config/HomeLabSmith, FLASK_ENV=production
 
 ### Inference Service (`inference-service.service`)

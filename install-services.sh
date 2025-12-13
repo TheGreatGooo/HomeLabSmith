@@ -41,8 +41,8 @@ sudo -u home-lab-services python3 -m venv /var/lib/home-lab-services/inference-v
 
 # Install requirements in virtual environments
 echo "Installing requirements in virtual environments..."
-sudo -u home-lab-services /var/lib/home-lab-services/shutdown-venv/bin/pip install flask psutil
-sudo -u home-lab-services /var/lib/home-lab-services/inference-venv/bin/pip install flask
+sudo -u home-lab-services /var/lib/home-lab-services/shutdown-venv/bin/pip install flask psutil gunicorn
+sudo -u home-lab-services /var/lib/home-lab-services/inference-venv/bin/pip install flask gunicorn
 
 # Copy service files to systemd directory (requires sudo)
 echo "Copying service files to systemd directory..."

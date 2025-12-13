@@ -7,6 +7,9 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
+# Create WSGI application object for production use with Gunicorn
+application = app
+
 # Directory where model configuration files are stored
 MODELS_DIR = os.environ.get('MODELS_CONFIG_DIR', os.path.expanduser("~/models/configs"))
 
