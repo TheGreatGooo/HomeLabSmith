@@ -22,10 +22,21 @@ else
     echo "User home-lab-services already exists"
 fi
 
-# Create necessary directories
+# Create necessary directories for services
 echo "Creating required directories..."
 sudo mkdir -p /var/lib/home-lab-services
+sudo mkdir -p /config/models
 sudo chown home-lab-services:home-lab-services /var/lib/home-lab-services
+
+# Copy Python service files to expected locations
+echo "Copying Python service files..."
+sudo cp shutdown-service/shutdown_service.py /config/HomeLabSmith/shutdown-service/
+sudo cp inference-service/inference_service.py /config/HomeLabSmith/inference-service/
+
+# Set proper permissions on service files
+sudo chown home-lab-services:home-lab-services /config/HomeLabSmith/shutdown-service/shutdown_service.py
+sudo chown home-lab-services:home-lab-services /config/HomeLabSmith/inference-service/inference_service.py
+sudo chown home-lab-services:home-lab-services /config/models
 
 # Copy service files to systemd directory (requires sudo)
 echo "Copying service files to systemd directory..."
@@ -59,3 +70,6 @@ echo "For logs:"
 echo "  sudo journalctl -u shutdown-service.service -f"
 echo "  sudo journalctl -u inference-service.service -f"
 echo "  sudo journalctl -u home-lab-services.service -f"
+echo ""
+echo "Environment variable MODELS_CONFIG_DIR is set to /config/models in the inference service."
+echo "This can be overridden by setting the environment variable before starting the service."

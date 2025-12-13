@@ -2,21 +2,27 @@
 Description=Home Lab Services Manager
 Documentation=https://github.com/TheGreatGooo/HomeLabSmith
 After=network.target
-Requires=shutdown-service.service inference-service.service
+Requires=network.target
 
 [Service]
 Type=simple
-User=abc
-Group=abc
+User=root
+Group=root
+# Working directory for the manager service
 WorkingDirectory=/config/HomeLabSmith
+# Restart policy - restart always if the process exits
 Restart=always
-RestartSec=10
+RestartSec=30
+# Environment variables
 Environment=PYTHONPATH=/config/HomeLabSmith
-Environment=FLASK_ENV=production
+# Executable path - this will manage both services
+ExecStart=/bin/bash -c 'echo "Starting Home Lab Services Manager"; systemctl start shutdown-service.service; systemctl start inference-service.service'
+# ExecStop - stop both services when manager stops
+ExecStop=/bin/bash -c 'systemctl stop shutdown-service.service; systemctl stop inference-service.service'
 # Logging configuration
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=home-lab-services
+SyslogIdentifier=home-lab-services-manager
 # Resource limits
 LimitNOFILE=65536
 LimitNPROC=4096
@@ -24,7 +30,6 @@ LimitNPROC=4096
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
-ReadWritePaths=/config/HomeLabSmith
 
 [Install]
 WantedBy=multi-user.target

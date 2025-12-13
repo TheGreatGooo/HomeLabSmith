@@ -8,7 +8,7 @@ from flask import Flask, jsonify, request
 app = Flask(__name__)
 
 # Directory where model configuration files are stored
-MODELS_DIR = os.path.expanduser("~/models/configs")
+MODELS_DIR = os.environ.get('MODELS_CONFIG_DIR', os.path.expanduser("~/models/configs"))
 
 def get_available_models():
     """Get list of available models from the configs directory"""
