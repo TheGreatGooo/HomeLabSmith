@@ -9,7 +9,7 @@ echo "Installing Home Lab Services..."
 
 # Check if running as root
 if [[ $EUID -eq 0 ]]; then
-   echo "This script should not be run as root" 
+   echo "This script should not be run as root"
    exit 1
 fi
 
@@ -33,6 +33,16 @@ sudo chown home-lab-services:home-lab-services /config/models
 echo "Creating service code directories..."
 sudo mkdir -p /config/HomeLabSmith/shutdown-service
 sudo mkdir -p /config/HomeLabSmith/inference-service
+
+# Create virtual environments for services
+echo "Creating virtual environments..."
+sudo -u home-lab-services python3 -m venv /var/lib/home-lab-services/shutdown-venv
+sudo -u home-lab-services python3 -m venv /var/lib/home-lab-services/inference-venv
+
+# Install requirements in virtual environments
+echo "Installing requirements in virtual environments..."
+sudo -u home-lab-services /var/lib/home-lab-services/shutdown-venv/bin/pip install flask psutil
+sudo -u home-lab-services /var/lib/home-lab-services/inference-venv/bin/pip install flask
 
 # Copy service files to systemd directory (requires sudo)
 echo "Copying service files to systemd directory..."

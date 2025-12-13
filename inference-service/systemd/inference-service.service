@@ -15,7 +15,7 @@ Environment=PYTHONPATH=/config/HomeLabSmith
 Environment=FLASK_ENV=production
 Environment=MODELS_CONFIG_DIR=/config/models
 # Executable path
-ExecStart=/usr/bin/python3 /config/HomeLabSmith/inference-service/inference_service.py
+ExecStart=/var/lib/home-lab-services/inference-venv/bin/python3 /config/HomeLabSmith/inference-service/inference_service.py
 # Logging configuration
 StandardOutput=journal
 StandardError=journal

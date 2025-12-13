@@ -14,7 +14,7 @@ RestartSec=10
 Environment=PYTHONPATH=/config/HomeLabSmith
 Environment=FLASK_ENV=production
 # Executable path
-ExecStart=/usr/bin/python3 /config/HomeLabSmith/shutdown-service/shutdown_service.py
+ExecStart=/var/lib/home-lab-services/shutdown-venv/bin/python3 /config/HomeLabSmith/shutdown-service/shutdown_service.py
 # Logging configuration
 StandardOutput=journal
 StandardError=journal

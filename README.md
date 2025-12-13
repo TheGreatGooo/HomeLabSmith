@@ -34,6 +34,7 @@ The system consists of three main systemd services:
 - Uses restart policy with 10-second delay on failure
 - Configured with resource limits (65536 file descriptors, 4096 processes)
 - Secure system protection with private temporary directories
+- Virtual environment: `/var/lib/home-lab-services/shutdown-venv`
 - Environment variables: PYTHONPATH=/config/HomeLabSmith, FLASK_ENV=production
 
 ### Inference Service (`inference-service.service`)
@@ -71,6 +72,7 @@ The system consists of three main systemd services:
 - Uses restart policy with 10-second delay on failure
 - Configured with resource limits (65536 file descriptors, 4096 processes)
 - Secure system protection with private temporary directories
+- Virtual environment: `/var/lib/home-lab-services/inference-venv`
 - Environment variables: PYTHONPATH=/config/HomeLabSmith, FLASK_ENV=production, MODELS_CONFIG_DIR=/config/models
 
 ### Manager Service (`home-lab-services.service`)
