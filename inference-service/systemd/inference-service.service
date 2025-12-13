@@ -1,0 +1,32 @@
+[Unit]
+Description=Inference Model Service
+Documentation=https://github.com/your-repo/home-lab-services
+After=network.target
+Requires=network.target
+
+[Service]
+Type=simple
+User=abc
+Group=abc
+WorkingDirectory=/config/HomeLabSmith/inference-service
+Restart=always
+RestartSec=10
+Environment=PYTHONPATH=/config/HomeLabSmith
+Environment=FLASK_ENV=production
+# Executable path
+ExecStart=/usr/bin/python3 /config/HomeLabSmith/inference-service/inference_service.py
+# Logging configuration
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=inference-service
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/config/HomeLabSmith/inference-service
+
+[Install]
+WantedBy=multi-user.target

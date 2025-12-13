@@ -1,0 +1,30 @@
+[Unit]
+Description=Home Lab Services Manager
+Documentation=https://github.com/your-repo/home-lab-services
+After=network.target
+Requires=shutdown-service.service inference-service.service
+
+[Service]
+Type=simple
+User=abc
+Group=abc
+WorkingDirectory=/config/HomeLabSmith
+Restart=always
+RestartSec=10
+Environment=PYTHONPATH=/config/HomeLabSmith
+Environment=FLASK_ENV=production
+# Logging configuration
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=home-lab-services
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/config/HomeLabSmith
+
+[Install]
+WantedBy=multi-user.target
