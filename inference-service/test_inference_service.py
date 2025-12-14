@@ -14,13 +14,19 @@ class TestInferenceService(unittest.TestCase):
     
     @patch('inference_service.os.path.exists')
     @patch('inference_service.os.listdir')
-    def test_get_available_models(self, mock_listdir, mock_exists):
-        """Test getting available models"""
+    @patch('inference_service.os.path.isfile')
+    @patch('builtins.open', new_callable=unittest.mock.mock_open, read_data='PORT="8198"')
+    def test_get_available_models(self, mock_open, mock_isfile, mock_listdir, mock_exists):
+        """Test getting available models with port information"""
         mock_exists.return_value = True
         mock_listdir.return_value = ['model1.conf', 'model2.conf']
+        mock_isfile.return_value = True
         
         models = get_available_models()
-        self.assertEqual(models, ['model1.conf', 'model2.conf'])
+        self.assertEqual(len(models), 2)
+        self.assertEqual(models[0]['model_name'], 'model1.conf')
+        self.assertEqual(models[0]['port'], '8198')
+        self.assertIn('model1.conf', models[0]['file_path'])
     
     @patch('inference_service.os.path.exists')
     @patch('inference_service.os.listdir')
