@@ -14,7 +14,12 @@ application = app
 MODELS_DIR = os.environ.get('MODELS_CONFIG_DIR', os.path.expanduser("~/models/configs"))
 
 def get_available_models():
-    """Get list of available models from the configs directory"""
+    """
+    Get list of available models from the configs directory.
+    Reads configuration files from a specified directory, parses each file to extract
+    the PORT value, and returns a list containing all discovered port numbers along
+    with their corresponding model names and file paths.
+    """
     if not os.path.exists(MODELS_DIR):
         return []
     
@@ -22,8 +27,30 @@ def get_available_models():
     try:
         files = os.listdir(MODELS_DIR)
         # Filter out directories, keep only files
-        models = [f for f in files if os.path.isfile(os.path.join(MODELS_DIR, f))]
-        return models
+        model_configs = []
+        
+        for file in files:
+            file_path = os.path.join(MODELS_DIR, file)
+            if os.path.isfile(file_path):
+                # Parse the configuration file to extract PORT value
+                port = None
+                try:
+                    with open(file_path, 'r') as f:
+                        for line in f:
+                            if line.startswith('PORT='):
+                                # Extract port value from line like PORT="8198"
+                                port = line.split('=')[1].strip().strip('"')
+                                break
+                except Exception as e:
+                    print(f"Error reading config file {file}: {e}")
+                
+                model_configs.append({
+                    "model_name": file,
+                    "file_path": file_path,
+                    "port": port
+                })
+        
+        return model_configs
     except Exception as e:
         print(f"Error reading models directory: {e}")
         return []
@@ -79,8 +106,8 @@ def systemctl_action(action, model_name):
         return False, f"Error executing systemctl command: {str(e)}"
 
 @app.route('/models', methods=['GET'])
-def get_available_models():
-    """Get list of available inference models"""
+def get_available_models_endpoint():
+    """Get list of available inference models with their port information"""
     try:
         models = get_available_models()
         return jsonify({
