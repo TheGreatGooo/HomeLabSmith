@@ -24,7 +24,7 @@ spec:
           subPath: nginx.conf
         - name: nginx-logs
           mountPath: /var/log/nginx
-        - name: config-volume
+        - name: config-writable
           mountPath: /config
       - name: nginx-monitor
         image: ghcr.io/thegreatgooo/homelabsmith-nginx-endpoint-activity-monitor:latest
@@ -44,6 +44,13 @@ spec:
       - name: config-volume
         configMap:
           name: nginx-config-map
+          items:
+          - key: nginx.conf
+            path: nginx.conf
+          - key: config.json
+            path: config.json
+      - name: config-writable
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
