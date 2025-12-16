@@ -16,7 +16,7 @@ spec:
       serviceAccountName: nginx-configmap-updater-sa
       containers:
       - name: nginx-configmap-updater
-        image: ghcr.io/thegreatgooo/homelabsmith-nginx-configmap-updater:latest
+        image: ghcr.io/thegreatgooo/homelabsmith-nginx-configmap-updater-service:latest
         imagePullPolicy: Always
         env:
         - name: INFERENCE_SERVICE_URL
