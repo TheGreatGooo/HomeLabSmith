@@ -1,0 +1,8 @@
+{
+    "inference_service_url": "http://localhost:5002",
+    "configmap_name": "nginx-config-map",
+    "configmap_namespace": "default",
+    "check_interval": 30,
+    "max_retries": 3,
+    "retry_delay": 5
+}
