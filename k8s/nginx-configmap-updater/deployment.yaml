@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-configmap-updater
+  namespace: inference-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-configmap-updater
+  template:
+    metadata:
+      labels:
+        app: nginx-configmap-updater
+    spec:
+      serviceAccountName: nginx-configmap-updater-sa
+      containers:
+      - name: nginx-configmap-updater
+        image: ghcr.io/thegreatgooo/homelabsmith-nginx-configmap-updater:latest
+        imagePullPolicy: Always
+        env:
+        - name: INFERENCE_SERVICE_URL
+          value: "http://inference-service:5002"
+        - name: CONFIGMAP_NAME
+          value: "nginx-config-map"
+        - name: CONFIGMAP_NAMESPACE
+          value: "inference-manager"
+        - name: CHECK_INTERVAL
+          value: "30"
+        - name: MAX_RETRIES
+          value: "3"
+        - name: RETRY_DELAY
+          value: "5"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "25m"
+          limits:
+            memory: "128Mi"
+            cpu: "50m"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nginx-configmap-updater-sa
+  namespace: inference-manager
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: nginx-configmap-updater-role
+  namespace: inference-manager
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: nginx-configmap-updater-role-binding
+  namespace: inference-manager
+subjects:
+- kind: ServiceAccount
+  name: nginx-configmap-updater-sa
+  namespace: inference-manager
+roleRef:
+  kind: Role
+  name: nginx-configmap-updater-role
+  apiGroup: rbac.authorization.k8s.io
