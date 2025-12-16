@@ -125,6 +125,19 @@ jobs:
             org.opencontainers.image.version=${{ github.sha }}
             org.opencontainers.image.source=https://github.com/TheGreatGooo/HomeLabSmith
 
+      - name: Build and push nginx-configmap-updater-service
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        with:
+          context: ./nginx-configmap-updater-service
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-configmap-updater-service:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-configmap-updater-service:latest
+          labels: |
+            org.opencontainers.image.title=nginx-configmap-updater-service
+            org.opencontainers.image.version=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/TheGreatGooo/HomeLabSmith
+
       # Sign the resulting Docker image digests except on PRs.
       - name: Sign the published Docker images
         if: ${{ github.event_name != 'pull_request' }}
@@ -140,6 +153,8 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-endpoint-activity-monitor:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-configmap-updater-service:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-configmap-updater-service:latest
         run: |
           TAGS="${TAGS}"
           for tag in $TAGS; do
