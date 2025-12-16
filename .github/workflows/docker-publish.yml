@@ -65,7 +65,9 @@ jobs:
         with:
           context: ./inference-service
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-inference-service:${{ github.sha }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-inference-service:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-inference-service:latest
           labels: |
             org.opencontainers.image.title=inference-service
             org.opencontainers.image.version=${{ github.sha }}
@@ -76,7 +78,9 @@ jobs:
         with:
           context: ./model-monitor-service
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-model-monitor-service:${{ github.sha }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-model-monitor-service:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-model-monitor-service:latest
           labels: |
             org.opencontainers.image.title=model-monitor-service
             org.opencontainers.image.version=${{ github.sha }}
@@ -87,7 +91,9 @@ jobs:
         with:
           context: ./nginx-endpoint-activity-monitor
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-endpoint-activity-monitor:${{ github.sha }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-endpoint-activity-monitor:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-endpoint-activity-monitor:latest
           labels: |
             org.opencontainers.image.title=nginx-endpoint-activity-monitor
             org.opencontainers.image.version=${{ github.sha }}
@@ -98,7 +104,9 @@ jobs:
         with:
           context: ./shutdown-service
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:${{ github.sha }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:latest
           labels: |
             org.opencontainers.image.title=shutdown-service
             org.opencontainers.image.version=${{ github.sha }}
@@ -109,7 +117,9 @@ jobs:
         with:
           context: ./wol-service
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:${{ github.sha }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:latest
           labels: |
             org.opencontainers.image.title=wol-service
             org.opencontainers.image.version=${{ github.sha }}
@@ -125,6 +135,11 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-endpoint-activity-monitor:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-inference-service:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-model-monitor-service:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-endpoint-activity-monitor:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:latest
         run: |
           TAGS="${TAGS}"
           for tag in $TAGS; do
