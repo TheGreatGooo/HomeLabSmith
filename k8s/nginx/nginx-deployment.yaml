@@ -34,6 +34,8 @@ spec:
         env:
         - name: NGINX_AUTORELOAD
           value: "true"
+        - name: NGINX_AUTORELOAD_WATCHLIST
+          value: /mnt/config
       - name: nginx-monitor
         image: ghcr.io/thegreatgooo/homelabsmith-nginx-endpoint-activity-monitor:latest
         volumeMounts:
