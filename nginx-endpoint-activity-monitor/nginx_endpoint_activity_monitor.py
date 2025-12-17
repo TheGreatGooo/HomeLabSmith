@@ -39,7 +39,8 @@ class NginxMonitor:
         Args:
             config_file: Path to the configuration file
         """
-        self.config_file = config_file
+        # Get config file path from environment variable or use default
+        self.config_file = os.environ.get('CONFIG_FILE_PATH', config_file)
         self.config = self._load_config()
         self.running = False
         self.last_seen_timestamps: Dict[str, datetime] = {}
@@ -201,6 +202,9 @@ class NginxMonitor:
         """
         Report patterns that have received activity every 10 minutes
         """
+        # Reload config file before processing
+        self.config = self._load_config()
+        
         current_time = datetime.now()
         
         # Reset active patterns tracking for this reporting cycle

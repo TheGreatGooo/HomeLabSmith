@@ -42,9 +42,11 @@ spec:
         - name: nginx-logs
           mountPath: /var/log/nginx
           readOnly: true
-        - name: config-volume
-          mountPath: /config.json
-          subPath: config.json
+        - name: nginx-config-full
+          mountPath: /mnt/config
+        env:
+        - name: CONFIG_FILE_PATH
+          value: /mnt/config/config.json
       volumes:
       - name: nginx-config-full
         configMap:
