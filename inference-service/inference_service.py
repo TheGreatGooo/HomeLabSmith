@@ -64,14 +64,16 @@ def get_running_models():
         running_models = []
         for model in available_models:
             # Check if the service is active
+            # model is a dict with 'model_name' key, not a string
+            model_name = model['model_name']
             result = subprocess.run(
-                ['systemctl', 'is-active', f'model@{model}'],
+                ['systemctl', 'is-active', f'model@{model_name}'],
                 capture_output=True,
                 text=True
             )
             
             if result.returncode == 0 and result.stdout.strip() == 'active':
-                running_models.append(model)
+                running_models.append(model_name)
         
         return running_models
     except Exception as e:
