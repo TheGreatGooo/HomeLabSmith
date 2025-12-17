@@ -36,6 +36,9 @@ kubectl apply -f k8s/nginx/nginx-deployment.yaml
 
 The nginx configuration is in `nginx.conf` and the monitor configuration is in `config.json`. Both are stored in a single ConfigMap.
 
+Additionally, the NGINX ConfigMap Updater service uses a separate configmap for the inference service URL:
+- `inference-service-config` in the `inference-manager` namespace
+
 ## Monitoring
 
 The sidecar container monitors nginx access logs for specific URI patterns and triggers HTTP endpoints when those patterns haven't been active for 10 minutes.

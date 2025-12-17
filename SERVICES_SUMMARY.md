@@ -29,6 +29,15 @@ This project provides a comprehensive systemd service configuration for managing
   - View currently running models
   - Integrates with systemctl for service management
 
+### NGINX ConfigMap Updater Service
+- **Purpose**: Dynamically updates NGINX configuration based on available inference models
+- **Namespace**: `inference-manager`
+- **Key Features**:
+  - Monitors inference service for available models
+  - Automatically generates NGINX location blocks for each model
+  - Updates NGINX ConfigMap with new configuration
+  - Uses separate configmap for inference service URL to enable environment-specific configuration
+
 ### Manager Service (`home-lab-services.service`)
 - **Purpose**: Acts as a coordinator for both services
 - **Dependencies**: Ensures proper startup order and service coordination

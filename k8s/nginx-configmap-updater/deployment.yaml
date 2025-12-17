@@ -18,9 +18,10 @@ spec:
       - name: nginx-configmap-updater
         image: ghcr.io/thegreatgooo/homelabsmith-nginx-configmap-updater-service:latest
         imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: inference-service-config
         env:
-        - name: INFERENCE_SERVICE_URL
-          value: "http://inference-service:5002"
         - name: CONFIGMAP_NAME
           value: "nginx-config-map"
         - name: CONFIGMAP_NAMESPACE

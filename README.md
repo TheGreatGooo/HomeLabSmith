@@ -137,6 +137,10 @@ systemctl list-unit-files | grep -E "(shutdown|inference)"
 - Shutdown service: `/etc/systemd/system/shutdown-service.service`
 - Inference service: `/etc/systemd/system/inference-service.service`
 
+### Kubernetes Configuration:
+- NGINX ConfigMap Updater: `/config/HomeLabSmith/k8s/nginx-configmap-updater/`
+- Inference Service ConfigMap: `/config/HomeLabSmith/k8s/inference-service-configmap.yaml`
+
 ### Service Directories:
 - Shutdown service files: `/config/HomeLabSmith/shutdown-service/`
 - Inference service files: `/config/HomeLabSmith/inference-service/`
