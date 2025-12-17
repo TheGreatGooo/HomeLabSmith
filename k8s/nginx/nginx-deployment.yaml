@@ -16,12 +16,12 @@ spec:
       containers:
       - name: nginx
         image: lscr.io/linuxserver/nginx:latest
+        command: ["/bin/sh", "-c", "mkdir -p /etc/nginx /config && cp -r /mnt/config/* /config/ && ln -sf /config/nginx.conf /etc/nginx/nginx.conf && ln -sf /config/config.json /config.json && nginx -g 'daemon off;'"]
         ports:
         - containerPort: 80
         volumeMounts:
-        - name: nginx-config
-          mountPath: /etc/nginx/nginx.conf
-          subPath: nginx.conf
+        - name: nginx-config-full
+          mountPath: /mnt/config
         - name: nginx-logs
           mountPath: /var/log/nginx
         - name: config-writable
@@ -36,7 +36,7 @@ spec:
           mountPath: /config.json
           subPath: config.json
       volumes:
-      - name: nginx-config
+      - name: nginx-config-full
         configMap:
           name: nginx-config-map
       - name: nginx-logs
