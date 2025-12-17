@@ -25,6 +25,8 @@ data:
             }
         }
     }
+    daemon off;
+    pid /run/nginx.pid;
   config.json: |
     [
         {
