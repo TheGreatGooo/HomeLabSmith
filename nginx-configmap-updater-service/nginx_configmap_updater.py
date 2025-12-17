@@ -34,6 +34,9 @@ class NGINXConfigMapUpdater:
         self.last_models = []
         self.last_update_time = 0
         
+        # Store the config.json content to avoid unnecessary updates
+        self.last_config_json = []
+        
     def load_config(self):
         """Load configuration from environment or default values"""
         return {
@@ -218,11 +221,41 @@ http {{
     }}
 }}"""
     
+    def generate_config_json_entries(self, models):
+        """Generate config.json entries for NGINX location patterns and endpoints"""
+        config_entries = []
+        for model in models:
+            model_name = model.get('model_name')
+            # Pattern should be the location path (e.g., /model_name/)
+            pattern = f"/{model_name}/"
+            # Endpoint should be http://<INFERENCE_SERVICE_URL>:5002/models/<model_name>/start
+            endpoint = f"{self.inference_service_url}/models/{model_name}/start"
+            config_entries.append({
+                "pattern": pattern,
+                "endpoint": endpoint
+            })
+        return config_entries
+    
+    def should_update_config_json(self, models):
+        """Check if we should update the config.json content based on model changes"""
+        # Generate current config entries
+        current_config = self.generate_config_json_entries(models)
+        
+        # If no previous config or different from previous, update needed
+        if not self.last_config_json:
+            return True
+        
+        # Compare the config entries
+        return current_config != self.last_config_json
+    
     def update_configmap(self, models):
         """Update the NGINX ConfigMap with new configuration"""
         try:
             # Generate new configuration
             new_nginx_conf = self.generate_nginx_config(models)
+            
+            # Generate new config.json entries
+            config_entries = self.generate_config_json_entries(models)
             
             # Read existing configmap
             configmap = self.api_instance.read_namespaced_config_map(
@@ -233,6 +266,9 @@ http {{
             # Update the nginx.conf content
             configmap.data['nginx.conf'] = new_nginx_conf
             
+            # Update the config.json content
+            configmap.data['config.json'] = json.dumps(config_entries, indent=4)
+            
             # Update the configmap
             api_response = self.api_instance.patch_namespaced_config_map(
                 name=self.config['configmap_name'],
@@ -241,6 +277,8 @@ http {{
             )
             
             logger.info("Successfully updated NGINX ConfigMap")
+            # Store the current config entries for future comparison
+            self.last_config_json = config_entries
             return True
             
         except ApiException as e:
