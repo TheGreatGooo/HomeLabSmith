@@ -5,3 +5,4 @@ metadata:
   namespace: inference-manager
 data:
   INFERENCE_SERVICE_URL: "http://inference-service:5002"
+  PROXY_HOSTNAME: "localhost"

@@ -72,9 +72,11 @@ class NGINXConfigMapUpdater:
     
     def create_nginx_location_block(self, model_name, port):
         """Create NGINX location block for a model"""
+        # Get hostname from environment variable or default to localhost
+        hostname = os.environ.get('PROXY_HOSTNAME', 'localhost')
         return f"""
             location /{model_name}/ {{
-                proxy_pass http://localhost:{port}/;
+                proxy_pass http://{hostname}:{port}/;
                 proxy_set_header Host $host;
                 proxy_set_header X-Real-IP $remote_addr;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
