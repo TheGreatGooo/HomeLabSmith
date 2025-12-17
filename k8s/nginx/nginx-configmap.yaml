@@ -4,6 +4,8 @@ metadata:
   name: nginx-config-map
   namespace: inference-manager
 data:
+  etcnginx.conf: |
+    include /mnt/config/nginx.conf;
   nginx.conf: |
     events {
         worker_connections 1024;
@@ -20,12 +22,6 @@ data:
             location / {
                 root   /usr/share/nginx/html;
                 index  index.html index.htm;
-            }
-            
-            location /api/ {
-                proxy_pass http://backend-service:8080/;
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
             }
         }
     }

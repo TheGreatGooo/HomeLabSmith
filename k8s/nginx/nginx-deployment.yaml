@@ -16,7 +16,6 @@ spec:
       containers:
       - name: nginx
         image: lscr.io/linuxserver/nginx:latest
-        command: ["/bin/sh", "-c", "mkdir -p /etc/nginx /config && cp /mnt/config/nginx.conf /config/ && cp /mnt/config/config.json /config/ && ln -sf /config/nginx.conf /etc/nginx/nginx.conf && ln -sf /config/config.json /config.json && /init"]
         ports:
         - containerPort: 80
         volumeMounts:
@@ -26,6 +25,12 @@ spec:
           mountPath: /var/log/nginx
         - name: config-writable
           mountPath: /config
+        - name: config-volume
+          mountPath: /config.json
+          subPath: config.json
+        - name: config-volume
+          mountPath: /etc/nginx/nginx.conf
+          subPath: etcnginx.conf
         env:
         - name: NGINX_AUTORELOAD
           value: "true"
@@ -52,6 +57,8 @@ spec:
             path: nginx.conf
           - key: config.json
             path: config.json
+          - key: etcnginx.conf
+            path: etcnginx.conf
       - name: config-writable
         emptyDir: {}
 ---
