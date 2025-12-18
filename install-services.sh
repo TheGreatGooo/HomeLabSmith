@@ -33,6 +33,7 @@ sudo chown home-lab-services:home-lab-services /config/models
 echo "Creating service code directories..."
 sudo mkdir -p /config/HomeLabSmith/shutdown-service
 sudo mkdir -p /config/HomeLabSmith/inference-service
+sudo mkdir -p /config/HomeLabSmith/model-monitor-service
 
 # Create virtual environments for services
 echo "Creating virtual environments..."
