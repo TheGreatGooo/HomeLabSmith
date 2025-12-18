@@ -119,13 +119,18 @@ def check_and_shutdown_idle_models():
     # Get currently running models
     running_models = get_running_models()
     
+    # Extract model names from the available models data structure
+    available_model_names = [model['model_name'] for model in available_models]
+    
     # Check each model that's running but not active
     for model_name in running_models:
-        if is_model_idle(model_name):
-            print(f"Model {model_name} has been idle for too long, shutting down...")
-            shutdown_model(model_name)
-        else:
-            print(f"Model {model_name} is still active")
+        # Only process models that are in our available models list
+        if model_name in available_model_names:
+            if is_model_idle(model_name):
+                print(f"Model {model_name} has been idle for too long, shutting down...")
+                shutdown_model(model_name)
+            else:
+                print(f"Model {model_name} is still active")
 
 def reporting_thread():
     """Thread to periodically report model activity"""
@@ -137,13 +142,17 @@ def reporting_thread():
             # Get currently running models
             running_models = get_running_models()
             
+            # Extract model names from the available models data structure
+            available_model_names = [model['model_name'] for model in available_models]
+            
             # Check which models are active (recently used)
             active_models = []
-            for model_name in available_models:
+            for model in available_models:
+                model_name = model['model_name']
                 if is_model_active(model_name):
                     active_models.append(model_name)
             
-            print(f"Reporting: Available models: {available_models}")
+            print(f"Reporting: Available models: {available_model_names}")
             print(f"Reporting: Running models: {running_models}")
             print(f"Reporting: Active models (last 10 minutes): {active_models}")
             
@@ -170,9 +179,13 @@ def get_active_models():
     """Get list of models that have been active in the last 10 minutes"""
     try:
         available_models = get_inference_models()
-        active_models = []
         
-        for model_name in available_models:
+        # Extract model names from the available models data structure
+        available_model_names = [model['model_name'] for model in available_models]
+        
+        active_models = []
+        for model in available_models:
+            model_name = model['model_name']
             if is_model_active(model_name):
                 active_models.append(model_name)
         
@@ -194,10 +207,15 @@ def get_idle_models():
         available_models = get_inference_models()
         running_models = get_running_models()
         
+        # Extract model names from the available models data structure
+        available_model_names = [model['model_name'] for model in available_models]
+        
         idle_models = []
         for model_name in running_models:
-            if is_model_idle(model_name):
-                idle_models.append(model_name)
+            # Only process models that are in our available models list
+            if model_name in available_model_names:
+                if is_model_idle(model_name):
+                    idle_models.append(model_name)
         
         return jsonify({
             "status": "success",
@@ -217,8 +235,12 @@ def get_model_activity():
         available_models = get_inference_models()
         running_models = get_running_models()
         
+        # Extract model names from the available models data structure
+        available_model_names = [model['model_name'] for model in available_models]
+        
         activity_status = {}
-        for model_name in available_models:
+        for model in available_models:
+            model_name = model['model_name']
             last_activity = get_last_activity(model_name)
             is_active = is_model_active(model_name)
             is_idle = is_model_idle(model_name)
