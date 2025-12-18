@@ -41,6 +41,7 @@ class NGINXConfigMapUpdater:
         """Load configuration from environment or default values"""
         return {
             'inference_service_url': os.environ.get('INFERENCE_SERVICE_URL', 'http://localhost:5002'),
+            'model_monitor_service_url': os.environ.get('MODEL_MONITOR_SERVICE_URL', 'http://localhost:5003'),
             'configmap_name': os.environ.get('CONFIGMAP_NAME', 'nginx-config-map'),
             'configmap_namespace': os.environ.get('CONFIGMAP_NAMESPACE', 'default'),
             'check_interval': int(os.environ.get('CHECK_INTERVAL', '30')),
@@ -228,8 +229,8 @@ http {{
             model_name = model.get('model_name')
             # Pattern should be the location path (e.g., /model_name/)
             pattern = f"/{model_name}/"
-            # Endpoint should be http://<INFERENCE_SERVICE_URL>:5002/models/<model_name>/start
-            endpoint = f"{self.inference_service_url}/models/{model_name}/start"
+            # Endpoint should be http://<MODEL_MONITOR_SERVICE_URL>/models/<model_name>/report
+            endpoint = f"{self.config['model_monitor_service_url']}/models/{model_name}/report"
             config_entries.append({
                 "pattern": pattern,
                 "endpoint": endpoint

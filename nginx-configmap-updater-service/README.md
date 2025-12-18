@@ -23,6 +23,7 @@ This service continuously monitors an inference service for available models and
 The service can be configured using environment variables:
 
 - `INFERENCE_SERVICE_URL`: URL of the inference service (default: http://localhost:5002)
+- `MODEL_MONITOR_SERVICE_URL`: URL of the model monitor service (default: http://localhost:5003)
 - `CONFIGMAP_NAME`: Name of the NGINX ConfigMap (default: nginx-config-map)
 - `CONFIGMAP_NAMESPACE`: Namespace of the ConfigMap (default: default)
 - `CHECK_INTERVAL`: Polling interval in seconds (default: 30)
@@ -76,4 +77,3 @@ location /model2/ {
     proxy_pass http://localhost:8081/;
     ...
 }
-```
