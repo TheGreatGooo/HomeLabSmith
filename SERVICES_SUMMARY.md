@@ -2,9 +2,10 @@
 
 ## Overview
 
-This project provides a comprehensive systemd service configuration for managing two critical services in a home lab environment:
+This project provides a comprehensive systemd service configuration for managing three critical services in a home lab environment:
 1. **Shutdown Service** - Manages system shutdown scheduling and execution
 2. **Inference Service** - Manages machine learning model services via systemctl
+3. **Model Monitor Service** - Monitors model activity and automatically shuts down idle models to save resources
 
 ## Service Architecture
 
@@ -28,6 +29,16 @@ This project provides a comprehensive systemd service configuration for managing
   - Start, stop, and restart models
   - View currently running models
   - Integrates with systemctl for service management
+
+### Model Monitor Service (`model-monitor-service.service`)
+- **Purpose**: Monitors model activity and automatically shuts down idle models to save resources
+- **Port**: 5003
+- **User**: `home-lab-services` (dedicated service user)
+- **Key Features**:
+  - Reports active models (those that have received at least one request in the last 10 minutes)
+  - Periodically checks for idle models (those not used for more than 30 minutes) and shuts them down
+  - RESTful API endpoints for monitoring and reporting
+  - Health check endpoint to verify service status
 
 ### NGINX ConfigMap Updater Service
 - **Purpose**: Dynamically updates NGINX configuration based on available inference models
@@ -77,6 +88,7 @@ This project provides a comprehensive systemd service configuration for managing
    ```bash
    sudo systemctl enable shutdown-service.service
    sudo systemctl enable inference-service.service
+   sudo systemctl enable model-monitor-service.service
    sudo systemctl enable home-lab-services.service
    ```
 
@@ -84,6 +96,7 @@ This project provides a comprehensive systemd service configuration for managing
    ```bash
    sudo systemctl start shutdown-service.service
    sudo systemctl start inference-service.service
+   sudo systemctl start model-monitor-service.service
    sudo systemctl start home-lab-services.service
    ```
 
@@ -94,10 +107,12 @@ This project provides a comprehensive systemd service configuration for managing
 # Check status
 sudo systemctl status shutdown-service.service
 sudo systemctl status inference-service.service
+sudo systemctl status model-monitor-service.service
 
 # View logs
 sudo journalctl -u shutdown-service.service -f
 sudo journalctl -u inference-service.service -f
+sudo journalctl -u model-monitor-service.service -f
 ```
 
 ### Control Services
@@ -105,10 +120,12 @@ sudo journalctl -u inference-service.service -f
 # Restart services
 sudo systemctl restart shutdown-service.service
 sudo systemctl restart inference-service.service
+sudo systemctl restart model-monitor-service.service
 
 # Stop services
 sudo systemctl stop shutdown-service.service
 sudo systemctl stop inference-service.service
+sudo systemctl stop model-monitor-service.service
 ```
 
 ## Resource Limits
@@ -123,6 +140,7 @@ The services require:
 - Python 3.6+
 - Flask framework
 - psutil (for shutdown service)
+- requests (for model-monitor service)
 - systemctl (for inference service)
 
 ## Security Considerations
@@ -136,7 +154,7 @@ The services require:
 
 ### Common Issues:
 1. **Permission Denied**: Ensure proper file permissions and user ownership
-2. **Port Conflicts**: Verify ports 5001 and 5002 are not in use
+2. **Port Conflicts**: Verify ports 5001, 5002, and 5003 are not in use
 3. **Service Failures**: Check logs with `journalctl` for detailed error information
 4. **Configuration Errors**: Validate JSON configuration files
 

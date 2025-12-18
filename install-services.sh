@@ -38,25 +38,30 @@ sudo mkdir -p /config/HomeLabSmith/inference-service
 echo "Creating virtual environments..."
 sudo -u home-lab-services python3 -m venv /var/lib/home-lab-services/shutdown-venv
 sudo -u home-lab-services python3 -m venv /var/lib/home-lab-services/inference-venv
+sudo -u home-lab-services python3 -m venv /var/lib/home-lab-services/model-monitor-venv
 
 # Install requirements in virtual environments
 echo "Installing requirements in virtual environments..."
 sudo -u home-lab-services /var/lib/home-lab-services/shutdown-venv/bin/pip install flask psutil gunicorn
 sudo -u home-lab-services /var/lib/home-lab-services/inference-venv/bin/pip install flask gunicorn
+sudo -u home-lab-services /var/lib/home-lab-services/model-monitor-venv/bin/pip install flask requests psutil gunicorn
 
 # Copy service files to systemd directory (requires sudo)
 echo "Copying service files to systemd directory..."
 sudo cp shutdown-service/systemd/shutdown-service.service /etc/systemd/system/
 sudo cp inference-service/systemd/inference-service.service /etc/systemd/system/
+sudo cp model-monitor-service/systemd/model-monitor-service.service /etc/systemd/system/
 
 # Copy Python service files to expected locations
 echo "Copying Python service files..."
 sudo cp shutdown-service/shutdown_service.py /config/HomeLabSmith/shutdown-service/
 sudo cp inference-service/inference_service.py /config/HomeLabSmith/inference-service/
+sudo cp model-monitor-service/model_monitor.py /config/HomeLabSmith/model-monitor-service/
 
 # Set proper permissions on service files
 sudo chown home-lab-services:home-lab-services /config/HomeLabSmith/shutdown-service/shutdown_service.py
 sudo chown home-lab-services:home-lab-services /config/HomeLabSmith/inference-service/inference_service.py
+sudo chown home-lab-services:home-lab-services /config/HomeLabSmith/model-monitor-service/model_monitor.py
 
 # Reload systemd configuration
 echo "Reloading systemd configuration..."
@@ -66,6 +71,7 @@ sudo systemctl daemon-reload
 echo "Enabling services to start on boot..."
 sudo systemctl enable shutdown-service.service
 sudo systemctl enable inference-service.service
+sudo systemctl enable model-monitor-service.service
 
 echo "Services installed and enabled successfully!"
 echo ""
