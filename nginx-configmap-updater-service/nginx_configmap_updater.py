@@ -112,11 +112,6 @@ class NGINXConfigMapUpdater:
                     server_block_end = i
                     break
             
-            # Extract the server block content
-            server_block_content = []
-            if server_block_start != -1 and server_block_end != -1:
-                server_block_content = lines[server_block_start:server_block_end+1]
-            
             # Create new location blocks for each model
             location_blocks = []
             for model in models:
@@ -125,32 +120,80 @@ class NGINXConfigMapUpdater:
                 if model_name and port:
                     location_blocks.append(self.create_nginx_location_block(model_name, port))
             
-            # Build the new configuration
-            new_config_lines = []
-            in_server_block = False
-            server_block_processed = False
-            
-            for i, line in enumerate(lines):
-                if 'server {' in line:
-                    in_server_block = True
-                    new_config_lines.append(line)
-                    # Add location blocks after the server block starts
-                    for location_block in location_blocks:
-                        new_config_lines.append(location_block)
-                elif in_server_block and '}' in line and not line.strip().startswith('//'):
-                    in_server_block = False
-                    new_config_lines.append(line)
-                    server_block_processed = True
-                elif not in_server_block:
-                    new_config_lines.append(line)
-                elif in_server_block and server_block_processed:
-                    # Skip the original server block content after we've added our location blocks
-                    continue
-                else:
-                    new_config_lines.append(line)
-            
-            # If we didn't find a server block, add one at the end
-            if not server_block_processed:
+            # If we found a server block, process it to handle duplicates
+            if server_block_start != -1 and server_block_end != -1:
+                # Extract the server block content
+                server_block_content = lines[server_block_start:server_block_end+1]
+                
+                # Parse existing location blocks in the server block to identify duplicates
+                existing_locations = {}
+                i = 0
+                while i < len(server_block_content):
+                    line = server_block_content[i]
+                    if 'location ' in line and line.strip().endswith('{'):
+                        # Found a location block, collect it and all its content
+                        location_block_lines = []
+                        j = i
+                        while j < len(server_block_content):
+                            location_block_lines.append(server_block_content[j])
+                            if server_block_content[j].strip() == '}':
+                                break
+                            j += 1
+                        # Extract the location pattern to identify duplicates
+                        location_pattern = line.strip()[9:-1].strip()  # Remove 'location ' and '{'
+                        existing_locations[location_pattern] = '\n'.join(location_block_lines)
+                        i = j  # Skip to the end of this location block
+                    i += 1
+                
+                # Build the new configuration
+                new_config_lines = []
+                in_server_block = False
+                server_block_processed = False
+                added_location_patterns = set()
+                
+                # Process all lines in the original config
+                i = 0
+                while i < len(lines):
+                    line = lines[i]
+                    if 'server {' in line:
+                        in_server_block = True
+                        new_config_lines.append(line)
+                        # Add new location blocks, replacing duplicates
+                        for location_block in location_blocks:
+                            # Extract the location pattern from the new block
+                            lines_in_block = location_block.strip().split('\n')
+                            if lines_in_block and lines_in_block[0].strip().startswith('location '):
+                                location_pattern = lines_in_block[0].strip()[9:-1].strip()  # Remove 'location ' and '{'
+                                # If this location pattern already exists, replace it; otherwise add it
+                                if location_pattern in existing_locations:
+                                    # Replace the existing location block with the new one
+                                    new_config_lines.append(location_block)
+                                    added_location_patterns.add(location_pattern)
+                                else:
+                                    # Add new location block
+                                    new_config_lines.append(location_block)
+                                    added_location_patterns.add(location_pattern)
+                        # Add any remaining existing location blocks that weren't in the new list
+                        for pattern, location_block in existing_locations.items():
+                            if pattern not in added_location_patterns:
+                                new_config_lines.append(location_block)
+                        # Continue processing the rest of the server block
+                    elif in_server_block and '}' in line and not line.strip().startswith('//'):
+                        in_server_block = False
+                        new_config_lines.append(line)
+                        server_block_processed = True
+                    elif not in_server_block:
+                        new_config_lines.append(line)
+                    elif in_server_block and server_block_processed:
+                        # Skip the original server block content after we've added our location blocks
+                        pass
+                    else:
+                        new_config_lines.append(line)
+                    i += 1
+                
+                return '\n'.join(new_config_lines)
+            else:
+                # If we didn't find a server block, add one at the end
                 # Find the end of the http block
                 http_block_end = -1
                 for i, line in enumerate(lines):
@@ -178,8 +221,8 @@ class NGINXConfigMapUpdater:
                         "    }",
                         ""
                     ]
-            
-            return '\n'.join(new_config_lines)
+                
+                return '\n'.join(new_config_lines)
             
         except Exception as e:
             logger.error(f"Error reading existing configmap: {e}")
