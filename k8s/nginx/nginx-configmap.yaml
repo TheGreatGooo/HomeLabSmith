@@ -29,6 +29,7 @@ data:
     }
     daemon off;
     pid /run/nginx.pid;
+    user abc abc;
   config.json: |
     [
         {
