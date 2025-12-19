@@ -2,7 +2,7 @@
 """
 Nginx Endpoint Activity Monitor
 Monitors nginx access logs for endpoint activity and triggers configured endpoints when patterns are inactive.
-Every 10 minutes, checks if configured URI patterns have been active and calls endpoints when they haven't been.
+Every minute, checks if configured URI patterns have been active and calls endpoints when they haven't been.
 """
 
 import asyncio
@@ -200,7 +200,7 @@ class NginxMonitor:
 
     async def _report_active_patterns(self):
         """
-        Report patterns that have received activity every 10 minutes
+        Report patterns that have received activity every minute
         """
         # Reload config file before processing
         self.config = self._load_config()
@@ -212,7 +212,7 @@ class NginxMonitor:
         self.active_patterns.clear()
         
         if active_patterns_list:
-            logger.info(f"Active patterns in last 10 minutes: {', '.join(active_patterns_list)}")
+            logger.info(f"Active patterns in last minute: {', '.join(active_patterns_list)}")
             
             # Optionally make HTTP requests to report activity (if configured)
             tasks = []
@@ -226,7 +226,7 @@ class NginxMonitor:
             # Run all HTTP requests concurrently
             await asyncio.gather(*tasks, return_exceptions=True)
         else:
-            logger.info("No patterns were active in the last 10 minutes")
+            logger.info("No patterns were active in the last minute")
 
     async def _tail_log_file(self, log_file_path: str):
         """
@@ -283,15 +283,15 @@ class NginxMonitor:
 
     async def _monitor_loop(self):
         """
-        Main monitoring loop that reports active patterns every 10 minutes
+        Main monitoring loop that reports active patterns every minute
         """
         while self.running:
             try:
-                # Report active patterns every 10 minutes (600 seconds)
+                # Report active patterns every minute (60 seconds)
                 await self._report_active_patterns()
                 
-                # Wait for 10 minutes before next check
-                await asyncio.sleep(600)
+                # Wait for 1 minute before next check
+                await asyncio.sleep(60)
                 
             except Exception as e:
                 logger.error(f"Error in monitoring loop: {e}")
