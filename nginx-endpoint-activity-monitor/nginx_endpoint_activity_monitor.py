@@ -235,27 +235,30 @@ class NginxMonitor:
         Args:
             log_file_path: Path to the nginx access log file
         """
-        try:
-            # Open the file in binary mode for better compatibility with tailing
-            with open(log_file_path, 'rb') as f:
-                # Go to the end of the file
-                f.seek(0, os.SEEK_END)
-                
-                while self.running:
-                    line = f.readline()
-                    if line:
-                        # Decode bytes to string and process
-                        line_str = line.decode('utf-8', errors='ignore').strip()
-                        if line_str:
-                            self._process_log_line(line_str)
-                    else:
-                        # No new data, wait a bit before checking again
-                        await asyncio.sleep(0.1)
-                        
-        except FileNotFoundError:
-            logger.error(f"Log file not found: {log_file_path}")
-        except Exception as e:
-            logger.error(f"Error tailing log file {log_file_path}: {e}")
+        while self.running:
+            try:
+                # Open the file in binary mode for better compatibility with tailing
+                with open(log_file_path, 'rb') as f:
+                    # Go to the end of the file
+                    f.seek(0, os.SEEK_END)
+                    
+                    while self.running:
+                        line = f.readline()
+                        if line:
+                            # Decode bytes to string and process
+                            line_str = line.decode('utf-8', errors='ignore').strip()
+                            if line_str:
+                                self._process_log_line(line_str)
+                        else:
+                            # No new data, wait a bit before checking again
+                            await asyncio.sleep(0.1)
+                            
+            except FileNotFoundError:
+                logger.warning(f"Log file not found, retrying in 5 seconds: {log_file_path}")
+                await asyncio.sleep(5)
+            except Exception as e:
+                logger.error(f"Error tailing log file {log_file_path}: {e}")
+                await asyncio.sleep(5)
 
     async def start(self):
         """
