@@ -155,8 +155,8 @@ class NginxMonitor:
         try:
             # Create a new session for each request to avoid connection pooling issues
             async with aiohttp.ClientSession() as session:
-                # Make GET request to the endpoint
-                async with session.get(
+                # Make POST request to the endpoint
+                async with session.post(
                     endpoint_config['endpoint'],
                     timeout=aiohttp.ClientTimeout(total=30),
                     headers={'User-Agent': 'nginx-endpoint-activity-monitor/1.0'}
