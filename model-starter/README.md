@@ -34,10 +34,10 @@ docker run -p 8080:8080 model-starter
 ### Systemd
 ```bash
 # Copy service file
-sudo cp systemd/model-orchestrator.service /etc/systemd/system/
+sudo cp systemd/model-starter.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable model-orchestrator
-sudo systemctl start model-orchestrator
+sudo systemctl enable model-starter
+sudo systemctl start model-starter
 ```
 
 ## API Endpoints

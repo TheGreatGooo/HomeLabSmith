@@ -1,4 +1,4 @@
-# Test file for Model Nginx Proxy Service
+# Test file for Model Starter Service
 import asyncio
 import unittest
 from unittest.mock import AsyncMock, patch
@@ -8,17 +8,17 @@ import os
 # Add the project root to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from model_nginx_proxy import ModelNginxProxy
+from model_starter import ModelStarter
 
-class TestModelNginxProxy(unittest.TestCase):
+class TestModelStarter(unittest.TestCase):
     
     def setUp(self):
-        self.proxy = ModelNginxProxy()
+        self.starter = ModelStarter()
         
     def test_setup_routes(self):
         """Test that routes are properly set up"""
         # Check that we have routes for different HTTP methods
-        routes = [route for route in self.proxy.app.router.routes()]
+        routes = [route for route in self.starter.app.router.routes()]
         self.assertGreater(len(routes), 0)
         
     @patch('aiohttp.ClientSession.get')
@@ -30,7 +30,7 @@ class TestModelNginxProxy(unittest.TestCase):
         mock_response.json = AsyncMock(return_value={'running': True})
         mock_get.return_value.__aenter__.return_value = mock_response
         
-        result = await self.proxy.check_model_running()
+        result = await self.starter.check_model_running()
         self.assertTrue(result)
         
     @patch('aiohttp.ClientSession.get')
@@ -41,7 +41,7 @@ class TestModelNginxProxy(unittest.TestCase):
         mock_response.status = 500
         mock_get.return_value.__aenter__.return_value = mock_response
         
-        result = await self.proxy.check_model_running()
+        result = await self.starter.check_model_running()
         self.assertFalse(result)
         
     @patch('aiohttp.ClientSession.post')
@@ -52,7 +52,7 @@ class TestModelNginxProxy(unittest.TestCase):
         mock_response.status = 200
         mock_post.return_value.__aenter__.return_value = mock_response
         
-        result = await self.proxy.start_model("test_model")
+        result = await self.starter.start_model("test_model")
         self.assertTrue(result)
         
     @patch('aiohttp.ClientSession.post')
@@ -63,7 +63,7 @@ class TestModelNginxProxy(unittest.TestCase):
         mock_response.status = 500
         mock_post.return_value.__aenter__.return_value = mock_response
         
-        result = await self.proxy.start_model("test_model")
+        result = await self.starter.start_model("test_model")
         self.assertFalse(result)
 
 if __name__ == '__main__':
