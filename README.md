@@ -1,171 +1,30 @@
-# Home Lab Services
+# HomeLabSmith
 
-This project provides a comprehensive systemd service configuration for managing both a shutdown service and an inference service in a home lab environment.
+HomeLabSmith is a collection of services for managing and orchestrating AI models in a home lab environment.
 
-## Overview
+## Services
 
-The system consists of two main systemd services:
-1. **Shutdown Service** - Manages system shutdown operations
-2. **Inference Service** - Runs machine learning inference models
+1. **Inference Service** - Core service for running AI models
+2. **Model Monitor Service** - Monitors model usage and performance
+3. **Nginx Configmap Updater Service** - Updates nginx configuration dynamically
+4. **Nginx Endpoint Activity Monitor** - Monitors nginx endpoint activity
+5. **Shutdown Service** - Handles graceful shutdown of services
+6. **Wake-on-LAN Service** - Handles wake-on-lan functionality
+7. **Model Starter Service** - Starts and manages model inference endpoints automatically
 
-## System Architecture
+## Architecture Overview
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Home Lab Services                            │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐    ┌──────────────────┐ │
-│  │ Shutdown Service│    │ Inference Service│ │
-│  │ (shutdown.service)│  │ (inference.service)│ │
-│  └─────────────────┘    └──────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-```
+This system is designed to run in a Kubernetes environment with services communicating through nginx as a reverse proxy. The Model Starter Service acts as an upstream that ensures models are started when requested.
 
-## Service Configuration Details
+## Getting Started
 
-### Shutdown Service (`shutdown-service.service`)
+1. Deploy the services using the provided Kubernetes manifests
+2. Configure the services according to your environment
+3. Access the services through nginx
 
-**Purpose**: Manages system shutdown operations with proper dependencies and restart policies.
+## Contributing
 
-**Key Features**:
-- Runs under dedicated `home-lab-services` user account for security isolation
-- Requires network target before starting
-- Uses restart policy with 10-second delay on failure
-- Configured with resource limits (65536 file descriptors, 4096 processes)
-- Secure system protection with private temporary directories
-- Virtual environment: `/var/lib/home-lab-services/shutdown-venv`
-- Production WSGI server: Gunicorn with 2 workers
-- Environment variables: PYTHONPATH=/config/HomeLabSmith, FLASK_ENV=production
-
-### Inference Service (`inference-service.service`)
-
-**Purpose**: Runs machine learning inference models with optimized performance.
-
-**Key Features**:
-- Runs under dedicated `home-lab-services` user account for security isolation
-- Requires network target before starting
-- Uses restart policy with 10-second delay on failure
-- Configured with resource limits (65536 file descriptors, 4096 processes)
-- Secure system protection with private temporary directories
-- Virtual environment: `/var/lib/home-lab-services/inference-venv`
-- Production WSGI server: Gunicorn with 2 workers
-- Environment variables: PYTHONPATH=/config/HomeLabSmith, FLASK_ENV=production, MODELS_CONFIG_DIR=/config/models
-
-## Installation
-
-1. Make the installation script executable:
-   ```bash
-   chmod +x install-services.sh
-   ```
-
-2. Run the installation script (requires sudo):
-   ```bash
-   sudo ./install-services.sh
-   ```
-
-3. The services will be automatically enabled to start on boot.
-
-## Service Management
-
-### Starting Services
-```bash
-sudo systemctl start shutdown-service.service
-sudo systemctl start inference-service.service
-```
-
-### Stopping Services
-```bash
-sudo systemctl stop shutdown-service.service
-sudo systemctl stop inference-service.service
-```
-
-### Checking Status
-```bash
-sudo systemctl status shutdown-service.service
-sudo systemctl status inference-service.service
-```
-
-### Viewing Logs
-```bash
-sudo journalctl -u shutdown-service.service -f
-sudo journalctl -u inference-service.service -f
-```
-
-## Security Considerations
-
-1. **User Isolation**: Both services run under the dedicated `home-lab-services` user account to limit system access.
-2. **Resource Limits**: Configured with appropriate limits to prevent resource exhaustion.
-3. **System Protection**: Uses `ProtectSystem=strict` and `PrivateTmp=true` for enhanced security.
-4. **No New Privileges**: `NoNewPrivileges=true` prevents privilege escalation.
-
-## Dependencies
-
-- systemd (systemd version 240 or higher)
-- Python 3.8+
-- Required Python packages listed in `requirements.txt`
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Service fails to start**:
-   ```bash
-   sudo journalctl -u shutdown-service.service --no-pager
-   sudo journalctl -u inference-service.service --no-pager
-   ```
-
-2. **Permission denied errors**:
-   Check that the `home-lab-services` user has proper permissions on required directories.
-
-3. **Network connectivity issues**:
-   Verify network target dependencies are met before service startup.
-
-### Verification Commands
-
-```bash
-# Check if services are enabled
-systemctl is-enabled shutdown-service.service
-systemctl is-enabled inference-service.service
-
-# List all services
-systemctl list-unit-files | grep -E "(shutdown|inference)"
-```
-
-## Configuration Files
-
-### Service Configuration Locations:
-- Shutdown service: `/etc/systemd/system/shutdown-service.service`
-- Inference service: `/etc/systemd/system/inference-service.service`
-
-### Kubernetes Configuration:
-- NGINX ConfigMap Updater: `/config/HomeLabSmith/k8s/nginx-configmap-updater/`
-- Inference Service ConfigMap: `/config/HomeLabSmith/k8s/inference-service-configmap.yaml`
-
-### Service Directories:
-- Shutdown service files: `/config/HomeLabSmith/shutdown-service/`
-- Inference service files: `/config/HomeLabSmith/inference-service/`
-- Shared data directory: `/var/lib/home-lab-services/`
-
-## Maintenance
-
-### Updating Services
-1. Update the Python source files in their respective directories
-2. Reload systemd configuration:
-   ```bash
-   sudo systemctl daemon-reload
-   ```
-3. Restart services:
-   ```bash
-   sudo systemctl restart shutdown-service.service
-   sudo systemctl restart inference-service.service
-   ```
-
-### Service Logs
-All service logs are managed by systemd and can be viewed with:
-```bash
-sudo journalctl -u shutdown-service.service
-sudo journalctl -u inference-service.service
-```
+Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests.
 
 ## License
 

@@ -1,0 +1,20 @@
+[Unit]
+Description=Model Starter Service
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/model-starter
+Environment=INFERENCE_SERVER_HOST=localhost
+Environment=INFERENCE_SERVER_PORT=5002
+ExecStart=/usr/bin/python3 /opt/model-starter/model_starter.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=model-starter
+
+[Install]
+WantedBy=multi-user.target
