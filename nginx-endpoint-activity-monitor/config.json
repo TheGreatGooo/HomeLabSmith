@@ -1,10 +1,17 @@
 [
     {
         "pattern": "/api/users",
-        "endpoint": "http://localhost:8080/health"
+        "endpoint": "http://localhost:8080/health",
+        "endpoint_502": "http://localhost:8080/health/502"
     },
     {
         "pattern": "/api/products",
-        "endpoint": "http://localhost:8080/heartbeat"
+        "endpoint": "http://localhost:8080/heartbeat",
+        "endpoint_500": "http://localhost:8080/heartbeat/500",
+        "endpoint_404": "http://localhost:8080/heartbeat/404"
+    },
+    {
+        "pattern": "/api/orders",
+        "endpoint": "http://localhost:8080/orders"
     }
 ]

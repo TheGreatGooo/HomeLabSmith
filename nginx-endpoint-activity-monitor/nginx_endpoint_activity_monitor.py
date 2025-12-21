@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Nginx Endpoint Activity Monitor
-Monitors nginx access logs for endpoint activity and triggers configured endpoints when patterns are inactive.
-Every minute, checks if configured URI patterns have been active and calls endpoints when they haven't been.
+Monitors nginx access logs for endpoint activity and triggers configured endpoints when patterns are active.
+Reports immediately when activity is detected, with debouncing to prevent calls more than once every 10 minutes.
 """
 
 import asyncio
@@ -145,31 +145,90 @@ class NginxMonitor:
                 return rule
         return None
 
-    async def _check_endpoint(self, endpoint_config: Dict):
+    def _get_endpoint_for_status(self, rule: Dict, status_code: int) -> str:
+        """
+        Get the appropriate endpoint for a given status code
+        
+        Args:
+            rule: Configuration rule
+            status_code: HTTP status code
+            
+        Returns:
+            Endpoint URL to call
+        """
+        # Check if there's a specific endpoint for this status code
+        status_endpoint_key = f"endpoint_{status_code}"
+        if status_endpoint_key in rule:
+            return rule[status_endpoint_key]
+        
+        # Return the default endpoint if no status-specific endpoint exists
+        return rule['endpoint']
+
+    async def _check_endpoint(self, endpoint_config: Dict, status_code: int = None):
         """
         Make HTTP request to the defined endpoint
         
         Args:
             endpoint_config: Configuration for the endpoint to call
+            status_code: HTTP status code (optional)
         """
+        # Determine which endpoint to use based on status code
+        endpoint_url = endpoint_config['endpoint']
+        if status_code is not None:
+            endpoint_url = self._get_endpoint_for_status(endpoint_config, status_code)
+        
         try:
             # Create a new session for each request to avoid connection pooling issues
             async with aiohttp.ClientSession() as session:
                 # Make POST request to the endpoint
                 async with session.post(
-                    endpoint_config['endpoint'],
+                    endpoint_url,
                     timeout=aiohttp.ClientTimeout(total=30),
                     headers={'User-Agent': 'nginx-endpoint-activity-monitor/1.0'}
                 ) as response:
                     if response.status == 200:
-                        logger.info(f"Successfully called endpoint: {endpoint_config['endpoint']}")
+                        logger.info(f"Successfully called endpoint: {endpoint_url}")
                     else:
-                        logger.warning(f"Endpoint returned status code {response.status}: {endpoint_config['endpoint']}")
+                        logger.warning(f"Endpoint returned status code {response.status}: {endpoint_url}")
                         
         except asyncio.TimeoutError:
-            logger.error(f"Timeout calling endpoint {endpoint_config['endpoint']}")
+            logger.error(f"Timeout calling endpoint {endpoint_url}")
         except aiohttp.ClientError as e:
-            logger.error(f"Failed to call endpoint {endpoint_config['endpoint']}: {e}")
+            logger.error(f"Failed to call endpoint {endpoint_url}: {e}")
+
+    def _should_call_endpoint(self, pattern: str, current_time: datetime) -> bool:
+        """
+        Check if we should call the endpoint based on debouncing (10 minute minimum interval)
+        
+        Args:
+            pattern: The regex pattern that matched
+            current_time: Current timestamp
+            
+        Returns:
+            True if we should call the endpoint, False otherwise
+        """
+        last_seen = self.last_seen_timestamps.get(pattern)
+        if not last_seen:
+            # If never seen before, we should call it
+            return True
+        
+        # Check if 10 minutes have passed since last call
+        ten_minutes = timedelta(minutes=10)
+        if current_time - last_seen >= ten_minutes:
+            return True
+        
+        return False
+
+    async def _call_endpoint_immediately(self, endpoint_config: Dict, status_code: int = None):
+        """
+        Call the endpoint immediately with debouncing
+        
+        Args:
+            endpoint_config: Configuration for the endpoint to call
+            status_code: HTTP status code (optional)
+        """
+        # Call the endpoint directly
+        await self._check_endpoint(endpoint_config, status_code)
 
     def _process_log_line(self, line: str):
         """
@@ -184,6 +243,7 @@ class NginxMonitor:
             
         uri = parsed['uri']
         timestamp = parsed['timestamp']
+        status_code = parsed['status']
         
         # Check if this URI matches any configured pattern
         endpoint_config = self._should_check_endpoint(uri)
@@ -195,38 +255,22 @@ class NginxMonitor:
         # Update last seen timestamp for this endpoint
         self.last_seen_timestamps[endpoint_config['pattern']] = timestamp
         
-        # Mark pattern as active
-        self.active_patterns[endpoint_config['pattern']] = True
+        # Check if we should trigger the endpoint (debounced every 10 minutes)
+        if self._should_call_endpoint(endpoint_config['pattern'], timestamp):
+            # Mark pattern as active for immediate reporting
+            self.active_patterns[endpoint_config['pattern']] = True
+            # Call the endpoint immediately
+            asyncio.create_task(self._call_endpoint_immediately(endpoint_config, status_code))
+        else:
+            # Even if we don't call the endpoint, still mark as active for reporting
+            self.active_patterns[endpoint_config['pattern']] = True
 
     async def _report_active_patterns(self):
         """
-        Report patterns that have received activity every minute
+        [DEPRECATED] Old method for reporting patterns - now handled immediately in _process_log_line
         """
-        # Reload config file before processing
-        self.config = self._load_config()
-        
-        current_time = datetime.now()
-        
-        # Reset active patterns tracking for this reporting cycle
-        active_patterns_list = list(self.active_patterns.keys())
-        self.active_patterns.clear()
-        
-        if active_patterns_list:
-            logger.info(f"Active patterns in last minute: {', '.join(active_patterns_list)}")
-            
-            # Optionally make HTTP requests to report activity (if configured)
-            tasks = []
-            for pattern in active_patterns_list:
-                for rule in self.config:
-                    if rule['pattern'] == pattern:
-                        logger.info(f"Reporting activity for pattern: {pattern}")
-                        tasks.append(self._check_endpoint(rule))
-                        break
-            
-            # Run all HTTP requests concurrently
-            await asyncio.gather(*tasks, return_exceptions=True)
-        else:
-            logger.info("No patterns were active in the last minute")
+        # This method is no longer used in the new implementation
+        pass
 
     async def _tail_log_file(self, log_file_path: str):
         """
@@ -270,32 +314,16 @@ class NginxMonitor:
         # Get log file path from environment or use default
         log_file_path = os.environ.get('NGINX_LOG_FILE', '/var/log/nginx/access.log')
         
-        # Create tasks for both log tailing and endpoint checking
+        # Create task for log tailing only (no periodic monitoring)
         tasks = [
-            self._tail_log_file(log_file_path),
-            self._monitor_loop()
+            self._tail_log_file(log_file_path)
         ]
         
-        # Run both tasks concurrently
+        # Run the task
         await asyncio.gather(*tasks, return_exceptions=True)
         
         logger.info("Nginx Endpoint Activity Monitor stopped")
 
-    async def _monitor_loop(self):
-        """
-        Main monitoring loop that reports active patterns every minute
-        """
-        while self.running:
-            try:
-                # Report active patterns every minute (60 seconds)
-                await self._report_active_patterns()
-                
-                # Wait for 1 minute before next check
-                await asyncio.sleep(60)
-                
-            except Exception as e:
-                logger.error(f"Error in monitoring loop: {e}")
-                await asyncio.sleep(5)  # Wait a bit before retrying
 
 
 def main():
