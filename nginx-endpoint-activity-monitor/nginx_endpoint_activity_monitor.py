@@ -105,7 +105,7 @@ class NginxMonitor:
         """
         # Nginx common log format: IP - - [timestamp] "METHOD URI HTTP/1.1" STATUS SIZE
         # Example: 172.17.0.1 - - [07/Dec/2025:01:30:45 +0000] "GET /api/v1/users HTTP/1.1" 200 1234
-        pattern = r'^(\S+) \S+ \S+ \[([^\]]+)\] "(\S+) (\S+) HTTP/\S+" (\d+) (\S+) "\S" "\S+"$'
+        pattern = r'^(\S+) \S+ \S+ \[([^\]]+)\] "(\S+) (\S+) HTTP/\S+" (\d+) (\S+) "\S" "[^"]+"$'
         
         match = re.match(pattern, line.strip())
         if not match:
