@@ -146,46 +146,38 @@ class NGINXConfigMapUpdater:
                 
                 # Build the new configuration
                 new_config_lines = []
-                in_server_block = False
-                server_block_processed = False
-                added_location_patterns = set()
                 
                 # Process all lines in the original config
                 i = 0
                 while i < len(lines):
                     line = lines[i]
                     if 'server {' in line:
-                        in_server_block = True
                         new_config_lines.append(line)
                         # Add new location blocks, replacing duplicates
+                        added_location_patterns = set()
+                        
+                        # First, add all new location blocks
                         for location_block in location_blocks:
                             # Extract the location pattern from the new block
                             lines_in_block = location_block.strip().split('\n')
                             if lines_in_block and lines_in_block[0].strip().startswith('location '):
                                 location_pattern = lines_in_block[0].strip()[9:-1].strip()  # Remove 'location ' and '{'
-                                # If this location pattern already exists, replace it; otherwise add it
-                                if location_pattern in existing_locations:
-                                    # Replace the existing location block with the new one
-                                    new_config_lines.append(location_block)
-                                    added_location_patterns.add(location_pattern)
-                                else:
-                                    # Add new location block
-                                    new_config_lines.append(location_block)
-                                    added_location_patterns.add(location_pattern)
+                                new_config_lines.append(location_block)
+                                added_location_patterns.add(location_pattern)
+                        
                         # Add any remaining existing location blocks that weren't in the new list
                         for pattern, location_block in existing_locations.items():
                             if pattern not in added_location_patterns:
                                 new_config_lines.append(location_block)
+                        
                         # Continue processing the rest of the server block
-                    elif in_server_block and '}' in line and not line.strip().startswith('//'):
-                        in_server_block = False
-                        new_config_lines.append(line)
-                        server_block_processed = True
-                    elif not in_server_block:
-                        new_config_lines.append(line)
-                    elif in_server_block and server_block_processed:
                         # Skip the original server block content after we've added our location blocks
-                        pass
+                        j = i + 1
+                        while j < len(lines) and not (lines[j].strip() == '}' and 'server' in lines[j]):
+                            j += 1
+                        if j < len(lines):
+                            new_config_lines.append(lines[j])  # Add the closing '}' of server block
+                        i = j  # Skip to the end of the server block
                     else:
                         new_config_lines.append(line)
                     i += 1
