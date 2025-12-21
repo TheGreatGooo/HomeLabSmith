@@ -11,8 +11,8 @@ This project provides a comprehensive systemd service configuration for managing
 │                    Home Lab Services                            │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌─────────────────┐    ┌──────────────────┐    ┌─────────────┐ │
-│  │ Shutdown Service│    │ Inference Service│    │ Model Monitor│ │
-│  │ (shutdown.service)│  │ (inference.service)│  │ (model-monitor.service)│ │
+│  │ Shutdown Service│    │ Inference Service│    │             │ │
+│  │ (shutdown.service)│  │ (inference.service)│  │             │ │
 │  └─────────────────┘    └──────────────────┘    └─────────────┘ │
 │                                                                 │
 │  ┌─────────────────────────────────────────────────────────────┐  │
@@ -63,26 +63,6 @@ This project provides a comprehensive systemd service configuration for managing
 - `POST /models/<model_name>/start` - Start a specific model
 - `POST /models/<model_name>/stop` - Stop a specific model
 - `POST /models/<model_name>/restart` - Restart a specific model
-
-### 3. Model Monitor Service (`model-monitor-service.service`)
-
-**Purpose**: Monitors model activity and automatically shuts down idle models to save resources
-
-**Key Features**:
-- Reports active models (those that have received at least one request in the last 10 minutes)
-- Periodically checks for idle models (those not used for more than 30 minutes) and shuts them down
-- RESTful API endpoints for monitoring and reporting
-- Health check endpoint to verify service status
-
-**Port**: 5003
-**User**: `home-lab-services` (dedicated service user)
-
-**Endpoints**:
-- `GET /models/active` - Get list of models that have been active in the last 10 minutes
-- `GET /models/idle` - Get list of models that have been idle for more than 30 minutes
-- `GET /models/activity` - Get activity status for all models
-- `POST /models/<model_name>/report` - Report that a model has been used (updates last activity timestamp)
-- `GET /health` - Health check endpoint
 
 ### 4. NGINX ConfigMap Updater Service
 

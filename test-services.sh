@@ -18,12 +18,6 @@ else
     echo "✗ inference-service.service missing"
 fi
 
-if [ -f "/etc/systemd/system/model-monitor-service.service" ]; then
-    echo "✓ model-monitor-service.service exists"
-else
-    echo "✗ model-monitor-service.service missing"
-fi
-
 if [ -f "/etc/systemd/system/home-lab-services.service" ]; then
     echo "✓ home-lab-services.service exists"
 else
@@ -67,12 +61,6 @@ if systemctl is-enabled inference-service.service &>/dev/null; then
     echo "✓ inference-service.service is enabled"
 else
     echo "✗ inference-service.service is not enabled"
-fi
-
-if systemctl is-enabled model-monitor-service.service &>/dev/null; then
-    echo "✓ model-monitor-service.service is enabled"
-else
-    echo "✗ model-monitor-service.service is not enabled"
 fi
 
 if systemctl is-enabled home-lab-services.service &>/dev/null; then
