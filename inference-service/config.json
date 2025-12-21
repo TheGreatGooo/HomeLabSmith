@@ -1,0 +1,12 @@
+{
+  "service": {
+    "port": 5002,
+    "host": "0.0.0.0"
+  },
+  "monitoring": {
+    "reporting_interval_minutes": 10,
+    "shutdown_check_interval_minutes": 10,
+    "idle_threshold_minutes": 30,
+    "active_threshold_minutes": 10
+  }
+}
