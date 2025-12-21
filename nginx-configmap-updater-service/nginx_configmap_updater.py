@@ -276,7 +276,8 @@ http {{
             endpoint = f"{self.config['model_monitor_service_url']}/models/{model_name}/report"
             config_entries.append({
                 "pattern": pattern,
-                "endpoint": endpoint
+                "endpoint": endpoint,
+                "endpoint_502": f"http://<inference server>/models/<model>/start"
             })
         return config_entries
     
