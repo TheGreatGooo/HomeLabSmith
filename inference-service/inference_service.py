@@ -30,7 +30,7 @@ def load_config():
             "monitoring": {
                 "reporting_interval_minutes": 10,
                 "shutdown_check_interval_minutes": 10,
-                "idle_threshold_minutes": 30,
+                "idle_threshold_minutes": 10,
                 "active_threshold_minutes": 10
             }
         }
