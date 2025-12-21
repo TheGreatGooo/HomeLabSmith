@@ -2,7 +2,7 @@
 """
 Nginx Endpoint Activity Monitor
 Monitors nginx access logs for endpoint activity and triggers configured endpoints when patterns are active.
-Reports immediately when activity is detected, with debouncing to prevent calls more than once every 10 minutes.
+Reports immediately when activity is detected, with debouncing to prevent calls more than once every 1 minutes.
 """
 
 import asyncio
@@ -198,7 +198,7 @@ class NginxMonitor:
 
     def _should_call_endpoint(self, pattern: str, current_time: datetime) -> bool:
         """
-        Check if we should call the endpoint based on debouncing (10 minute minimum interval)
+        Check if we should call the endpoint based on debouncing (1 minute minimum interval)
         
         Args:
             pattern: The regex pattern that matched
@@ -212,8 +212,8 @@ class NginxMonitor:
             # If never seen before, we should call it
             return True
         
-        # Check if 10 minutes have passed since last call
-        ten_minutes = timedelta(minutes=10)
+        # Check if 1 minutes have passed since last call
+        ten_minutes = timedelta(minutes=1)
         if current_time - last_seen >= ten_minutes:
             return True
         
@@ -251,7 +251,7 @@ class NginxMonitor:
             return
         logger.info(f"Processing log line for URI: {uri}")
         
-        # Check if we should trigger the endpoint (debounced every 10 minutes)
+        # Check if we should trigger the endpoint (debounced every 1 minutes)
         if self._should_call_endpoint(endpoint_config['pattern'], timestamp):
             # Mark pattern as active for immediate reporting
             self.active_patterns[endpoint_config['pattern']] = True
