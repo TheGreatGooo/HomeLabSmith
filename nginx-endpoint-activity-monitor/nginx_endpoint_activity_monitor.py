@@ -43,7 +43,7 @@ class NginxMonitor:
         self.config_file = os.environ.get('CONFIG_FILE_PATH', config_file)
         self.config = self._load_config()
         self.running = False
-        self.last_seen_timestamps: Dict[str, datetime] = {}
+        self.last_request_sent: Dict[str, datetime] = {}
         self.active_patterns: Dict[str, bool] = {}
         
         # Setup signal handlers for graceful shutdown
@@ -207,7 +207,7 @@ class NginxMonitor:
         Returns:
             True if we should call the endpoint, False otherwise
         """
-        last_seen = self.last_seen_timestamps.get(pattern)
+        last_seen = self.last_request_sent.get(pattern)
         if not last_seen:
             # If never seen before, we should call it
             return True
@@ -250,20 +250,20 @@ class NginxMonitor:
         if not endpoint_config:
             return
         logger.info(f"Processing log line for URI: {uri}")
-
-        # Update last seen timestamp for this endpoint
-        self.last_seen_timestamps[endpoint_config['pattern']] = timestamp
         
         # Check if we should trigger the endpoint (debounced every 10 minutes)
         if self._should_call_endpoint(endpoint_config['pattern'], timestamp):
             # Mark pattern as active for immediate reporting
             self.active_patterns[endpoint_config['pattern']] = True
+            # Update last seen timestamp for this endpoint
+            self.last_request_sent[endpoint_config['pattern']] = timestamp
             # Call the endpoint immediately
             await self._call_endpoint_immediately(endpoint_config, status_code)
         else:
             logger.info(f"skipping endpoint call for {uri}")
             # Even if we don't call the endpoint, still mark as active for reporting
             self.active_patterns[endpoint_config['pattern']] = True
+
 
     async def _report_active_patterns(self):
         """
