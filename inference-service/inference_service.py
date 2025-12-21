@@ -5,9 +5,17 @@ import os
 import subprocess
 import threading
 import time
+import logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request
 import requests
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -71,12 +79,12 @@ def get_running_models():
                     running_models.append(model_name)
             except Exception as e:
                 # If there's an error checking a specific model, continue with others
-                print(f"Error checking status for model {model_name}: {e}")
+                logger.error(f"Error checking status for model {model_name}: {e}")
                 continue
         
         return running_models
     except Exception as e:
-        print(f"Error getting running models: {e}")
+        logger.error(f"Error getting running models: {e}")
         return []
 
 def get_available_models():
@@ -108,7 +116,7 @@ def get_available_models():
                                 port = line.split('=')[1].strip().strip('"')
                                 break
                 except Exception as e:
-                    print(f"Error reading config file {file}: {e}")
+                    logger.error(f"Error reading config file {file}: {e}")
                 
                 model_configs.append({
                     "model_name": file,
@@ -118,7 +126,7 @@ def get_available_models():
         
         return model_configs
     except Exception as e:
-        print(f"Error reading models directory: {e}")
+        logger.error(f"Error reading models directory: {e}")
         return []
 
 def update_last_activity(model_name):
@@ -162,18 +170,18 @@ def shutdown_model(model_name):
         )
         
         if result.returncode == 0:
-            print(f"Successfully stopped model: {model_name}")
+            logger.info(f"Successfully stopped model: {model_name}")
             return True
         else:
-            print(f"Error stopping model {model_name}: {result.stderr.strip()}")
+            logger.error(f"Error stopping model {model_name}: {result.stderr.strip()}")
             return False
     except Exception as e:
-        print(f"Error stopping model {model_name}: {e}")
+        logger.error(f"Error stopping model {model_name}: {e}")
         return False
 
 def check_and_shutdown_idle_models():
     """Periodically check for idle models and shut them down"""
-    print("Checking for idle models...")
+    logger.info("Checking for idle models...")
     
     # Get all available models
     available_models = get_available_models()
@@ -189,10 +197,10 @@ def check_and_shutdown_idle_models():
         # Only process models that are in our available models list
         if model_name in available_model_names:
             if is_model_idle(model_name):
-                print(f"Model {model_name} has been idle for too long, shutting down...")
+                logger.info(f"Model {model_name} has been idle for too long, shutting down...")
                 shutdown_model(model_name)
             else:
-                print(f"Model {model_name} is still active")
+                logger.info(f"Model {model_name} is still active")
 
 def reporting_thread():
     """Thread to periodically report model activity"""
@@ -214,14 +222,14 @@ def reporting_thread():
                 if is_model_active(model_name):
                     active_models.append(model_name)
             
-            print(f"Reporting: Available models: {available_model_names}")
-            print(f"Reporting: Running models: {running_models}")
-            print(f"Reporting: Active models (last 10 minutes): {active_models}")
+            logger.info(f"Reporting: Available models: {available_model_names}")
+            logger.info(f"Reporting: Running models: {running_models}")
+            logger.info(f"Reporting: Active models (last 10 minutes): {active_models}")
             
             # Wait for the reporting interval
             time.sleep(config['monitoring']['reporting_interval_minutes'] * 60)
         except Exception as e:
-            print(f"Error in reporting thread: {e}")
+            logger.error(f"Error in reporting thread: {e}")
             time.sleep(60)  # Wait a minute before retrying
 
 def shutdown_check_thread():
@@ -233,7 +241,7 @@ def shutdown_check_thread():
             # Wait for the shutdown check interval
             time.sleep(config['monitoring']['shutdown_check_interval_minutes'] * 60)
         except Exception as e:
-            print(f"Error in shutdown check thread: {e}")
+            logger.error(f"Error in shutdown check thread: {e}")
             time.sleep(60)  # Wait a minute before retrying
 
 def systemctl_action(action, model_name):
