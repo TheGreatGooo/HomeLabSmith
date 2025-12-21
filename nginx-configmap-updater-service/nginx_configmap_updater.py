@@ -277,7 +277,7 @@ http {{
             config_entries.append({
                 "pattern": pattern,
                 "endpoint": endpoint,
-                "endpoint_502": f"http://<inference server>/models/<model>/start"
+                "endpoint_502": f"http://{self.inference_service_url}/models/{model_name}/start"
             })
         return config_entries
     
