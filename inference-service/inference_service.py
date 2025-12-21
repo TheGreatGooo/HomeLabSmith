@@ -3,12 +3,13 @@
 import json
 import os
 import subprocess
-import threading
+import asyncio
 import time
 import logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request
 import requests
+import threading
 
 # Configure logging
 logging.basicConfig(
@@ -202,8 +203,8 @@ def check_and_shutdown_idle_models():
             else:
                 logger.info(f"Model {model_name} is still active")
 
-def reporting_thread():
-    """Thread to periodically report model activity"""
+async def reporting_task():
+    """Async task to periodically report model activity"""
     while True:
         try:
             # Get all available models
@@ -227,22 +228,22 @@ def reporting_thread():
             logger.info(f"Reporting: Active models (last 10 minutes): {active_models}")
             
             # Wait for the reporting interval
-            time.sleep(config['monitoring']['reporting_interval_minutes'] * 60)
+            await asyncio.sleep(config['monitoring']['reporting_interval_minutes'] * 60)
         except Exception as e:
-            logger.error(f"Error in reporting thread: {e}")
-            time.sleep(60)  # Wait a minute before retrying
+            logger.error(f"Error in reporting task: {e}")
+            await asyncio.sleep(60)  # Wait a minute before retrying
 
-def shutdown_check_thread():
-    """Thread to periodically check for and shutdown idle models"""
+async def shutdown_check_task():
+    """Async task to periodically check for and shutdown idle models"""
     while True:
         try:
             check_and_shutdown_idle_models()
             
             # Wait for the shutdown check interval
-            time.sleep(config['monitoring']['shutdown_check_interval_minutes'] * 60)
+            await asyncio.sleep(config['monitoring']['shutdown_check_interval_minutes'] * 60)
         except Exception as e:
-            logger.error(f"Error in shutdown check thread: {e}")
-            time.sleep(60)  # Wait a minute before retrying
+            logger.error(f"Error in shutdown check task: {e}")
+            await asyncio.sleep(60)  # Wait a minute before retrying
 
 def systemctl_action(action, model_name):
     """Execute systemctl action on a model"""
@@ -513,13 +514,45 @@ def home():
         "config": config
     })
 
-# Start monitoring threads in background (for both direct execution and gunicorn)
-reporting_thread_obj = threading.Thread(target=reporting_thread, daemon=True)
-reporting_thread_obj.start()
 
-shutdown_check_thread_obj = threading.Thread(target=shutdown_check_thread, daemon=True)
-shutdown_check_thread_obj.start()
+# Global variable to track if async tasks are running
+async_tasks_running = False
+
+def start_async_tasks():
+    """Start the async monitoring tasks in a separate thread"""
+    global async_tasks_running
+    if async_tasks_running:
+        return
+    
+    # Create a new event loop for the async tasks
+    async_loop = asyncio.new_event_loop()
+    
+    def run_async_tasks():
+        """Run the async monitoring tasks in a separate thread"""
+        asyncio.set_event_loop(async_loop)
+        try:
+            # Create tasks for reporting and shutdown checking
+            reporting_task_future = async_loop.create_task(reporting_task())
+            shutdown_task_future = async_loop.create_task(shutdown_check_task())
+            
+            # Run the tasks indefinitely
+            async_loop.run_forever()
+        except KeyboardInterrupt:
+            logger.info("Shutting down async tasks...")
+            reporting_task_future.cancel()
+            shutdown_task_future.cancel()
+            async_loop.run_until_complete(asyncio.gather(reporting_task_future, shutdown_task_future, return_exceptions=True))
+            async_loop.close()
+    
+    # Start async tasks in a separate thread
+    async_thread = threading.Thread(target=run_async_tasks, daemon=True)
+    async_thread.start()
+    async_tasks_running = True
+
+# Start async tasks when the module is imported (for Gunicorn) but only once
+start_async_tasks()
 
 # Only run the app directly if this is the main module (not when run via gunicorn)
 if __name__ == '__main__':
+    # Run the Flask app
     app.run(host='0.0.0.0', port=config['service']['port'], debug=True)
