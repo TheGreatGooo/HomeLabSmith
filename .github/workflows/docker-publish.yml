@@ -73,19 +73,6 @@ jobs:
             org.opencontainers.image.version=${{ github.sha }}
             org.opencontainers.image.source=https://github.com/TheGreatGooo/HomeLabSmith
 
-      - name: Build and push model-monitor-service
-        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
-        with:
-          context: ./model-monitor-service
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-model-monitor-service:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-model-monitor-service:latest
-          labels: |
-            org.opencontainers.image.title=model-monitor-service
-            org.opencontainers.image.version=${{ github.sha }}
-            org.opencontainers.image.source=https://github.com/TheGreatGooo/HomeLabSmith
-
       - name: Build and push nginx-endpoint-activity-monitor
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
@@ -144,12 +131,10 @@ jobs:
         env:
           TAGS: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-inference-service:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-model-monitor-service:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-endpoint-activity-monitor:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-inference-service:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-model-monitor-service:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-endpoint-activity-monitor:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:latest
