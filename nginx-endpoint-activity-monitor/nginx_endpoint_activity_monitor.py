@@ -249,9 +249,8 @@ class NginxMonitor:
         endpoint_config = self._should_check_endpoint(uri)
         if not endpoint_config:
             return
-            
         logger.info(f"Processing log line for URI: {uri}")
-        
+
         # Update last seen timestamp for this endpoint
         self.last_seen_timestamps[endpoint_config['pattern']] = timestamp
         
@@ -262,6 +261,7 @@ class NginxMonitor:
             # Call the endpoint immediately
             await self._call_endpoint_immediately(endpoint_config, status_code)
         else:
+            logger.info(f"skipping endpoint call for {uri}")
             # Even if we don't call the endpoint, still mark as active for reporting
             self.active_patterns[endpoint_config['pattern']] = True
 
