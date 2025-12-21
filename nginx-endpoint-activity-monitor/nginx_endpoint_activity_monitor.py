@@ -176,7 +176,7 @@ class NginxMonitor:
         endpoint_url = endpoint_config['endpoint']
         if status_code is not None:
             endpoint_url = self._get_endpoint_for_status(endpoint_config, status_code)
-        
+        logger.info(f"Calling endpoint: {endpoint_url}")
         try:
             # Create a new session for each request to avoid connection pooling issues
             async with aiohttp.ClientSession() as session:
@@ -242,7 +242,7 @@ class NginxMonitor:
             return
             
         uri = parsed['uri']
-        timestamp = parsed['timestamp']
+        timestamp = datetime.now()
         status_code = parsed['status']
         
         # Check if this URI matches any configured pattern
