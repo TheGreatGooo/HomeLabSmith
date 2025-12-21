@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project provides a comprehensive systemd service configuration for managing multiple services in a home lab environment. The system consists of several interconnected services that work together to provide shutdown management, machine learning inference capabilities, model monitoring, and Kubernetes integration.
+This project provides a comprehensive systemd service configuration for managing multiple services in a home lab environment. The system consists of several interconnected services that work together to provide shutdown management, machine learning inference capabilities, and Kubernetes integration.
 
 ## Architecture
 
@@ -64,7 +64,7 @@ This project provides a comprehensive systemd service configuration for managing
 - `POST /models/<model_name>/stop` - Stop a specific model
 - `POST /models/<model_name>/restart` - Restart a specific model
 
-### 4. NGINX ConfigMap Updater Service
+### 3. NGINX ConfigMap Updater Service
 
 **Purpose**: Dynamically updates NGINX configuration based on available inference models
 
@@ -119,28 +119,24 @@ This service runs as a Kubernetes deployment and:
 ```bash
 sudo systemctl start shutdown-service.service
 sudo systemctl start inference-service.service
-sudo systemctl start model-monitor-service.service
 ```
 
 ### Stopping Services
 ```bash
 sudo systemctl stop shutdown-service.service
 sudo systemctl stop inference-service.service
-sudo systemctl stop model-monitor-service.service
 ```
 
 ### Checking Status
 ```bash
 sudo systemctl status shutdown-service.service
 sudo systemctl status inference-service.service
-sudo systemctl status model-monitor-service.service
 ```
 
 ### Viewing Logs
 ```bash
 sudo journalctl -u shutdown-service.service -f
 sudo journalctl -u inference-service.service -f
-sudo journalctl -u model-monitor-service.service -f
 ```
 
 ## Security Considerations
@@ -156,12 +152,10 @@ sudo journalctl -u model-monitor-service.service -f
 ### Service Configuration Locations:
 - Shutdown service: `/etc/systemd/system/shutdown-service.service`
 - Inference service: `/etc/systemd/system/inference-service.service`
-- Model monitor service: `/etc/systemd/system/model-monitor-service.service`
 
 ### Service Directories:
 - Shutdown service files: `/config/HomeLabSmith/shutdown-service/`
 - Inference service files: `/config/HomeLabSmith/inference-service/`
-- Model monitor service files: `/config/HomeLabSmith/model-monitor-service/`
 - Shared data directory: `/var/lib/home-lab-services/`
 
 ## Maintenance
@@ -176,7 +170,6 @@ sudo journalctl -u model-monitor-service.service -f
    ```bash
    sudo systemctl restart shutdown-service.service
    sudo systemctl restart inference-service.service
-   sudo systemctl restart model-monitor-service.service
    ```
 
 ### Service Logs
@@ -184,7 +177,6 @@ All service logs are managed by systemd and can be viewed with:
 ```bash
 sudo journalctl -u shutdown-service.service
 sudo journalctl -u inference-service.service
-sudo journalctl -u model-monitor-service.service
 ```
 
 ## Troubleshooting
@@ -195,7 +187,6 @@ sudo journalctl -u model-monitor-service.service
    ```bash
    sudo journalctl -u shutdown-service.service --no-pager
    sudo journalctl -u inference-service.service --no-pager
-   sudo journalctl -u model-monitor-service.service --no-pager
    ```
 
 2. **Permission denied errors**:
@@ -210,10 +201,9 @@ sudo journalctl -u model-monitor-service.service
 # Check if services are enabled
 systemctl is-enabled shutdown-service.service
 systemctl is-enabled inference-service.service
-systemctl is-enabled model-monitor-service.service
 
 # List all services
-systemctl list-unit-files | grep -E "(shutdown|inference|model-monitor)"
+systemctl list-unit-files | grep -E "(shutdown|inference)"
 ```
 
 ## Dependencies
