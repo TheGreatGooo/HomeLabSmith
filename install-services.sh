@@ -44,7 +44,7 @@ sudo -u home-lab-services python3 -m venv /var/lib/home-lab-services/model-start
 # Install requirements in virtual environments
 echo "Installing requirements in virtual environments..."
 sudo -u home-lab-services /var/lib/home-lab-services/shutdown-venv/bin/pip install flask psutil gunicorn
-sudo -u home-lab-services /var/lib/home-lab-services/inference-venv/bin/pip install flask gunicorn
+sudo -u home-lab-services /var/lib/home-lab-services/inference-venv/bin/pip install flask gunicorn requests
 sudo -u home-lab-services /var/lib/home-lab-services/model-starter-venv/bin/pip install aiohttp
 
 # Copy service files to systemd directory (requires sudo)
