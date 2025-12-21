@@ -513,12 +513,13 @@ def home():
         "config": config
     })
 
+# Start monitoring threads in background (for both direct execution and gunicorn)
+reporting_thread_obj = threading.Thread(target=reporting_thread, daemon=True)
+reporting_thread_obj.start()
+
+shutdown_check_thread_obj = threading.Thread(target=shutdown_check_thread, daemon=True)
+shutdown_check_thread_obj.start()
+
+# Only run the app directly if this is the main module (not when run via gunicorn)
 if __name__ == '__main__':
-    # Start monitoring threads in background
-    reporting_thread_obj = threading.Thread(target=reporting_thread, daemon=True)
-    reporting_thread_obj.start()
-    
-    shutdown_check_thread_obj = threading.Thread(target=shutdown_check_thread, daemon=True)
-    shutdown_check_thread_obj.start()
-    
     app.run(host='0.0.0.0', port=config['service']['port'], debug=True)
