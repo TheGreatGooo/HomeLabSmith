@@ -14,6 +14,9 @@ app = Flask(__name__)
 # Create WSGI application object for production use with Gunicorn
 application = app
 
+# Track server start time
+server_start_time = datetime.now()
+
 # Directory where model configuration files are stored
 MODELS_DIR = os.environ.get('MODELS_CONFIG_DIR', os.path.expanduser("~/models/configs"))
 
@@ -118,15 +121,16 @@ def get_available_models():
         print(f"Error reading models directory: {e}")
         return []
 
-
-
 def update_last_activity(model_name):
     """Update the last activity timestamp for a model"""
     last_activity_timestamps[model_name] = datetime.now()
 
 def get_last_activity(model_name):
-    """Get the last activity timestamp for a model"""
-    return last_activity_timestamps.get(model_name, None)
+    """Get the last activity timestamp for a model, return server start time if none recorded"""
+    activity = last_activity_timestamps.get(model_name, None)
+    if activity is None:
+        return server_start_time
+    return activity
 
 def is_model_active(model_name):
     """Check if a model has been active within the last X minutes"""
