@@ -230,7 +230,7 @@ class NginxMonitor:
         # Call the endpoint directly
         await self._check_endpoint(endpoint_config, status_code)
 
-    def _process_log_line(self, line: str):
+    async def _process_log_line(self, line: str):
         """
         Process a single log line
         
@@ -260,7 +260,7 @@ class NginxMonitor:
             # Mark pattern as active for immediate reporting
             self.active_patterns[endpoint_config['pattern']] = True
             # Call the endpoint immediately
-            asyncio.create_task(self._call_endpoint_immediately(endpoint_config, status_code))
+            await self._call_endpoint_immediately(endpoint_config, status_code)
         else:
             # Even if we don't call the endpoint, still mark as active for reporting
             self.active_patterns[endpoint_config['pattern']] = True
@@ -292,7 +292,7 @@ class NginxMonitor:
                             # Decode bytes to string and process
                             line_str = line.decode('utf-8', errors='ignore').strip()
                             if line_str:
-                                self._process_log_line(line_str)
+                                await self._process_log_line(line_str)
                         else:
                             # No new data, wait a bit before checking again
                             await asyncio.sleep(0.1)
