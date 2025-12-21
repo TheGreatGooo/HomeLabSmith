@@ -250,7 +250,7 @@ class NginxMonitor:
         if not endpoint_config:
             return
             
-        logger.debug(f"Processing log line for URI: {uri}")
+        logger.info(f"Processing log line for URI: {uri}")
         
         # Update last seen timestamp for this endpoint
         self.last_seen_timestamps[endpoint_config['pattern']] = timestamp
