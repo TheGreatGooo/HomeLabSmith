@@ -8,6 +8,7 @@ A Python Flask service that exposes REST endpoints to manage inference models us
 - Start, stop, and restart inference models
 - Get list of currently running models
 - Model activity monitoring and idle shutdown
+- Automatic system shutdown when all models have been idle for 30 minutes
 - Uses systemctl to interact with model services
 
 ## Endpoints

@@ -180,6 +180,26 @@ def shutdown_model(model_name):
         logger.error(f"Error stopping model {model_name}: {e}")
         return False
 
+def execute_shutdown():
+    """Execute system shutdown command"""
+    try:
+        logger.info("Executing system shutdown...")
+        result = subprocess.run(
+            ['sudo', '/sbin/shutdown', '-h', 'now'],
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode == 0:
+            logger.info("System shutdown command executed successfully")
+            return True
+        else:
+            logger.error(f"Error executing shutdown command: {result.stderr.strip()}")
+            return False
+    except Exception as e:
+        logger.error(f"Error executing shutdown command: {e}")
+        return False
+
 def check_and_shutdown_idle_models():
     """Periodically check for idle models and shut them down"""
     logger.info("Checking for idle models...")
@@ -192,6 +212,32 @@ def check_and_shutdown_idle_models():
     
     # Extract model names from the available models data structure
     available_model_names = [model['model_name'] for model in available_models]
+    
+    # Check if all running models are idle for more than the threshold
+    all_models_idle = True
+    latest_activity = None
+    idle_threshold = timedelta(minutes=config['monitoring']['idle_threshold_minutes']*3)
+    
+    for model_name in running_models:
+        # Only process models that are in our available models list
+        if model_name in available_model_names:
+            if not is_model_idle(model_name):
+                all_models_idle = False
+                break
+            else:
+                # Track the latest activity timestamp among idle models
+                last_activity = get_last_activity(model_name)
+                if last_activity:
+                    if latest_activity is None or last_activity > latest_activity:
+                        latest_activity = last_activity
+    
+    # If all models are idle for more than the threshold, shutdown the system
+    if all_models_idle and len(running_models) > 0 and latest_activity:
+        # Check if all models have been idle for longer than the threshold
+        if datetime.now() - latest_activity > idle_threshold:
+            logger.info("All models have been idle for more than the threshold, shutting down system...")
+            execute_shutdown()
+            return
     
     # Check each model that's running but not active
     for model_name in running_models:
