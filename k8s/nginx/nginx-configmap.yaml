@@ -5,12 +5,13 @@ metadata:
   namespace: inference-manager
 data:
   etcnginx.conf: |
-    include /mnt/config/nginx.conf;
-  nginx.conf: |
     events {
         worker_connections 1024;
     }
     
+    daemon off;
+    pid /run/nginx.pid;
+    user abc abc;
     http {
         include       /etc/nginx/mime.types;
         default_type  application/octet-stream;
@@ -21,15 +22,14 @@ data:
             listen 80;
             server_name localhost;
             
+            include /mnt/config/nginx.conf;
             location / {
                 root   /usr/share/nginx/html;
                 index  index.html index.htm;
             }
         }
     }
-    daemon off;
-    pid /run/nginx.pid;
-    user abc abc;
+  nginx.conf: ""
   config.json: |
     [
         {
