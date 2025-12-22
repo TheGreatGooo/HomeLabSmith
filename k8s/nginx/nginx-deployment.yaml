@@ -44,6 +44,9 @@ spec:
           readOnly: true
         - name: nginx-config-full
           mountPath: /mnt/config
+        envFrom:
+        - configMapRef:
+            name: inference-service-config
         env:
         - name: CONFIG_FILE_PATH
           value: /mnt/config/config.json

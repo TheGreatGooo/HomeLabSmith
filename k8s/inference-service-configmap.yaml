@@ -7,3 +7,4 @@ data:
   INFERENCE_SERVICE_URL: "http://inference-service:5002"
   MODEL_MONITOR_SERVICE_URL: "http://model-monitor-service:5003"
   PROXY_HOSTNAME: "localhost"
+  WOL_MAC_ADDRESS: "00:00:00:00:00:00"
