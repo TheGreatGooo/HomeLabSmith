@@ -5,12 +5,6 @@
 echo "Testing Home Lab Services Configuration..."
 
 # Check if systemd service files exist
-echo "Checking service files..."
-if [ -f "/etc/systemd/system/shutdown-service.service" ]; then
-    echo "✓ shutdown-service.service exists"
-else
-    echo "✗ shutdown-service.service missing"
-fi
 
 if [ -f "/etc/systemd/system/inference-service.service" ]; then
     echo "✓ inference-service.service exists"
@@ -51,11 +45,6 @@ fi
 # Check service status (only if services are enabled)
 echo ""
 echo "Checking service status..."
-if systemctl is-enabled shutdown-service.service &>/dev/null; then
-    echo "✓ shutdown-service.service is enabled"
-else
-    echo "✗ shutdown-service.service is not enabled"
-fi
 
 if systemctl is-enabled inference-service.service &>/dev/null; then
     echo "✓ inference-service.service is enabled"

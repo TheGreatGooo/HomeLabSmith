@@ -31,7 +31,6 @@ sudo chown home-lab-services:home-lab-services /config/models
 
 # Create directories for service code if they don't exist
 echo "Creating service code directories..."
-sudo mkdir -p /config/HomeLabSmith/shutdown-service
 sudo mkdir -p /config/HomeLabSmith/inference-service
 sudo mkdir -p /config/HomeLabSmith/model-starter
 
@@ -49,18 +48,15 @@ sudo -u home-lab-services /var/lib/home-lab-services/model-starter-venv/bin/pip 
 
 # Copy service files to systemd directory (requires sudo)
 echo "Copying service files to systemd directory..."
-sudo cp shutdown-service/systemd/shutdown-service.service /etc/systemd/system/
 sudo cp inference-service/systemd/inference-service.service /etc/systemd/system/
 sudo cp model-starter/systemd/model-starter.service /etc/systemd/system/
 
 # Copy Python service files to expected locations
 echo "Copying Python service files..."
-sudo cp shutdown-service/shutdown_service.py /config/HomeLabSmith/shutdown-service/
 sudo cp inference-service/inference_service.py /config/HomeLabSmith/inference-service/
 sudo cp model-starter/model_starter.py /config/HomeLabSmith/model-starter/
 
 # Set proper permissions on service files
-sudo chown home-lab-services:home-lab-services /config/HomeLabSmith/shutdown-service/shutdown_service.py
 sudo chown home-lab-services:home-lab-services /config/HomeLabSmith/inference-service/inference_service.py
 sudo chown home-lab-services:home-lab-services /config/HomeLabSmith/model-starter/model_starter.py
 
@@ -70,24 +66,20 @@ sudo systemctl daemon-reload
 
 # Enable services to start on boot
 echo "Enabling services to start on boot..."
-sudo systemctl enable shutdown-service.service
 sudo systemctl enable inference-service.service
 sudo systemctl enable model-starter.service
 
 echo "Services installed and enabled successfully!"
 echo ""
 echo "To start the services now, run:"
-echo "  sudo systemctl start shutdown-service.service"
 echo "  sudo systemctl start inference-service.service"
 echo "  sudo systemctl start model-starter.service"
 echo ""
 echo "To check service status:"
-echo "  sudo systemctl status shutdown-service.service"
 echo "  sudo systemctl status inference-service.service"
 echo "  sudo systemctl status model-starter.service"
 echo ""
 echo "For logs:"
-echo "  sudo journalctl -u shutdown-service.service -f"
 echo "  sudo journalctl -u inference-service.service -f"
 echo "  sudo journalctl -u model-starter.service -f"
 echo ""

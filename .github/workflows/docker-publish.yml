@@ -86,32 +86,6 @@ jobs:
             org.opencontainers.image.version=${{ github.sha }}
             org.opencontainers.image.source=https://github.com/TheGreatGooo/HomeLabSmith
 
-      - name: Build and push shutdown-service
-        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
-        with:
-          context: ./shutdown-service
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:latest
-          labels: |
-            org.opencontainers.image.title=shutdown-service
-            org.opencontainers.image.version=${{ github.sha }}
-            org.opencontainers.image.source=https://github.com/TheGreatGooo/HomeLabSmith
-
-      - name: Build and push wol-service
-        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
-        with:
-          context: ./wol-service
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:latest
-          labels: |
-            org.opencontainers.image.title=wol-service
-            org.opencontainers.image.version=${{ github.sha }}
-            org.opencontainers.image.source=https://github.com/TheGreatGooo/HomeLabSmith
-
       - name: Build and push nginx-configmap-updater-service
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
@@ -132,12 +106,8 @@ jobs:
           TAGS: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-inference-service:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-endpoint-activity-monitor:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-inference-service:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-endpoint-activity-monitor:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-shutdown-service:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-wol-service:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-configmap-updater-service:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-configmap-updater-service:latest
         run: |
