@@ -16,6 +16,7 @@ Environment=FLASK_ENV=production
 Environment=MODELS_CONFIG_DIR=/config/models
 Environment=PYTHONUNBUFFERED=TRUE
 # Executable path - using Gunicorn for production
+ExecStartPre=/bin/bash -c 'if [ -f /config/start-inference-hook.sh ]; then /config/start-inference-hook.sh; fi'
 ExecStart=/var/lib/home-lab-services/inference-venv/bin/gunicorn --bind 0.0.0.0:5002 --workers 1 --timeout 120 --keep-alive 5 --max-requests 1000 --max-requests-jitter 100 inference_service:app
 # Logging configuration
 StandardOutput=journal
