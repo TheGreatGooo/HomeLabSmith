@@ -9,3 +9,4 @@ data:
   PROXY_HOSTNAME: "localhost"
   SERVER_NAME: "inference-service"
   WOL_SERVICE_URL: "http://wol-service:8080/wake"
+  OPEN_WEBUI_URL: "http://open-webui:8080"

@@ -30,6 +30,9 @@ class NGINXConfigMapUpdater:
         # Set up inference service URL
         self.inference_service_url = self.config.get('inference_service_url', 'http://localhost:5002')
         
+        # Set up Open WebUI URL
+        self.open_webui_url = self.config.get('open_webui_url', 'http://localhost:8080')
+        
         # Track last successful update to avoid unnecessary updates
         self.last_models = []
         self.last_update_time = 0
@@ -41,6 +44,7 @@ class NGINXConfigMapUpdater:
         """Load configuration from environment or default values"""
         return {
             'inference_service_url': os.environ.get('INFERENCE_SERVICE_URL', 'http://localhost:5002'),
+            'open_webui_url': os.environ.get('OPEN_WEBUI_URL', 'http://localhost:8080'),
             'configmap_name': os.environ.get('CONFIGMAP_NAME', 'nginx-config-map'),
             'configmap_namespace': os.environ.get('CONFIGMAP_NAMESPACE', 'default'),
             'check_interval': int(os.environ.get('CHECK_INTERVAL', '30')),
@@ -164,6 +168,65 @@ class NGINXConfigMapUpdater:
             logger.error(f"Error updating ConfigMap: {e}")
             return False
     
+    def send_models_to_open_webui(self, models):
+        """Send all models to Open WebUI via its API"""
+        if not models:
+            logger.info("No models to send to Open WebUI")
+            return True
+            
+        try:
+            # Prepare the OpenAI API configuration for Open WebUI
+            hostname = os.environ.get('NGINX_ROUTER_HOSTNAME', 'nginx-service.inference-manager')
+            
+            # Create base URLs for each model
+            base_urls = []
+            api_keys = []
+            configs = {}
+            
+            for i, model in enumerate(models):
+                model_name = model.get('model_name')
+                port = model.get('port')
+                if model_name and port:
+                    # Create the base URL for this model's OpenAI API endpoint
+                    base_url = f"http://{hostname}/{model_name}/v1"
+                    base_urls.append(base_url)
+                    api_keys.append("*")
+                    
+                    # Create config for this model (simplified structure)
+                    configs[str(i)] = {
+                        "enable": True,
+                        "tags": [],
+                        "prefix_id": "",
+                        "model_ids": []
+                    }
+            
+            # Send to Open WebUI API with the required structure
+            headers = {'Content-Type': 'application/json'}
+            payload = {
+                "ENABLE_OPENAI_API": True,
+                "OPENAI_API_BASE_URLS": base_urls,
+                "OPENAI_API_KEYS": api_keys,
+                "OPENAI_API_CONFIGS": configs
+            }
+            
+            response = requests.post(
+                f"{self.open_webui_url}/api/v1/openai/config",
+                json=payload,
+                headers=headers,
+                timeout=10
+            )
+            
+            if response.status_code in [200, 201]:
+                logger.info(f"Successfully sent model configurations to Open WebUI for {len(models)} models")
+                return True
+            else:
+                logger.error(f"Failed to send model configurations to Open WebUI: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error sending model configurations to Open WebUI: {e}")
+            return False
+    
     def should_update_config(self, models):
         """Check if we should update the config based on model changes"""
         # If no models, no update needed
@@ -195,6 +258,12 @@ class NGINXConfigMapUpdater:
                     success = self.update_configmap(models)
                     if success:
                         logger.info("ConfigMap updated successfully")
+                        # Also send models to Open WebUI
+                        webui_success = self.send_models_to_open_webui(models)
+                        if webui_success:
+                            logger.info("Models successfully sent to Open WebUI")
+                        else:
+                            logger.error("Failed to send models to Open WebUI")
                         self.last_models = models
                         self.last_update_time = time.time()
                     else:
