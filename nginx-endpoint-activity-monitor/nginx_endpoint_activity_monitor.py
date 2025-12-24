@@ -224,7 +224,8 @@ class NginxMonitor:
                 async with session.post(
                     endpoint_url,
                     timeout=aiohttp.ClientTimeout(total=30),
-                    headers={'User-Agent': 'nginx-endpoint-activity-monitor/1.0'}
+                    headers={'User-Agent': 'nginx-endpoint-activity-monitor/1.0'},
+                    data={'name': 'nginx'}
                 ) as response:
                     if response.status == 200:
                         logger.info(f"Successfully called endpoint: {endpoint_url}")
