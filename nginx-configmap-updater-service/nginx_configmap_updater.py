@@ -202,6 +202,18 @@ class NGINXConfigMapUpdater:
             
             # Send to Open WebUI API with the required structure
             headers = {'Content-Type': 'application/json'}
+            
+            # Read API key from file if specified by environment variable
+            api_key_file = os.environ.get('OPEN_WEBUI_API_KEY_FILE')
+            if api_key_file:
+                try:
+                    with open(api_key_file, 'r') as f:
+                        api_key = f.read().strip()
+                    headers['Authorization'] = f'Bearer {api_key}'
+                except Exception as e:
+                    logger.error(f"Failed to read API key from file {api_key_file}: {str(e)}")
+                    return False
+            
             payload = {
                 "ENABLE_OPENAI_API": True,
                 "OPENAI_API_BASE_URLS": base_urls,

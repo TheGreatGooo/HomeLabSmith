@@ -32,6 +32,12 @@ spec:
           value: "3"
         - name: RETRY_DELAY
           value: "5"
+        - name: OPEN_WEBUI_API_KEY_FILE
+          value: "/etc/open-webui-api-key/api-key.txt"
+        volumeMounts:
+        - name: open-webui-api-key
+          mountPath: /etc/open-webui-api-key
+          readOnly: true
         resources:
           requests:
             memory: "64Mi"
@@ -39,6 +45,10 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "50m"
+      volumes:
+      - name: open-webui-api-key
+        secret:
+          secretName: open-webui-api-key
 ---
 apiVersion: v1
 kind: ServiceAccount
