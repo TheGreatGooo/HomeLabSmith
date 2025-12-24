@@ -17,7 +17,6 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
 import aiohttp
-from aiohttp import ClientSession
 
 
 # Configure logging
@@ -47,8 +46,8 @@ class NginxMonitor:
         self.last_request_sent: Dict[str, datetime] = {}
         self.active_patterns: Dict[str, bool] = {}
         
-        # Get MAC address for Wake-on-LAN from environment variable
-        self.wol_mac_address = os.environ.get('WOL_MAC_ADDRESS')
+        # Get server name for Wake-on-LAN from environment variable
+        self.server_name = os.environ.get('SERVER_NAME')
         
         # Setup signal handlers for graceful shutdown
         signal.signal(signal.SIGTERM, self._signal_handler)
@@ -97,38 +96,37 @@ class NginxMonitor:
         logger.info("Received shutdown signal")
         self.running = False
 
-    def _send_wol_packet(self, mac_address: str):
+    async def _send_wol_packet(self, server_name: str):
         """
-        Send a Wake-on-LAN (WoL) packet to the specified MAC address
+        Send a Wake-on-LAN request via HTTP POST to the WOL service
         
         Args:
-            mac_address: MAC address of the target device
+            server_name: Name of the target server to wake up
         """
-        if not mac_address:
-            logger.warning("No MAC address provided for Wake-on-LAN")
+        if not server_name:
+            logger.warning("No server name provided for Wake-on-LAN")
             return
-        
-        # Parse MAC address (format: xx:xx:xx:xx:xx:xx or xx-xx-xx-xx-xx-xx)
-        mac = mac_address.replace('-', ':')
-        mac_bytes = bytes.fromhex(mac.replace(':', ''))
-        
-        # Create Wake-on-LAN packet
-        # 6 bytes of 0xFF followed by 16 repetitions of the MAC address
-        wol_packet = b'\xff' * 6 + mac_bytes * 16
-        
+            
+        # Get the WOL service URL from environment variable
+        wol_service_url = os.environ.get('WOL_SERVICE_URL')
+        if not wol_service_url:
+            logger.error("WOL_SERVICE_URL environment variable not set")
+            return
+            
         try:
-            # Create UDP socket
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            # Prepare the form data for the POST request
+            data = {'name': server_name}
             
-            # Send packet to broadcast address on port 9
-            sock.sendto(wol_packet, ('255.255.255.255', 9))
-            logger.info(f'Wake-on-LAN packet sent to {mac_address}')
-            
+            # Make HTTP POST request to the WOL service
+            async with aiohttp.ClientSession() as session:
+                async with session.post(wol_service_url, data=data) as response:
+                    if response.status == 200:
+                        logger.info(f'Wake-on-LAN request sent to {server_name}')
+                    else:
+                        logger.error(f'Failed to send Wake-on-LAN request: HTTP {response.status}')
+                        
         except Exception as e:
-            logger.error(f'Failed to send Wake-on-LAN packet: {e}')
-        finally:
-            sock.close()
+            logger.error(f'Failed to send Wake-on-LAN request: {e}')
 
     def _parse_nginx_log_line(self, line: str) -> Optional[Dict]:
         """
@@ -224,8 +222,7 @@ class NginxMonitor:
                 async with session.post(
                     endpoint_url,
                     timeout=aiohttp.ClientTimeout(total=30),
-                    headers={'User-Agent': 'nginx-endpoint-activity-monitor/1.0'},
-                    data={'name': 'nginx'}
+                    headers={'User-Agent': 'nginx-endpoint-activity-monitor/1.0'}
                 ) as response:
                     if response.status == 200:
                         logger.info(f"Successfully called endpoint: {endpoint_url}")
@@ -307,14 +304,14 @@ class NginxMonitor:
             self.last_request_sent[endpoint_config['pattern']] = timestamp
             # Call the endpoint immediately
             success = await self._call_endpoint_immediately(endpoint_config, status_code)
-            # Send Wake-on-LAN packet if MAC address is configured and endpoint was unreachable
-            if not success and self.wol_mac_address:
+            # Send Wake-on-LAN packet if server name is configured and endpoint was unreachable
+            if not success and self.server_name:
                 # Add debouncing for WoL packets to prevent spamming during server startup
                 wol_debounce_key = f"wol_{endpoint_config['pattern']}"
                 wol_last_sent = self.last_request_sent.get(wol_debounce_key)
                 wol_min_interval = timedelta(minutes=5)  # 5 minute debounce for WoL
                 if not wol_last_sent or (timestamp - wol_last_sent) >= wol_min_interval:
-                    self._send_wol_packet(self.wol_mac_address)
+                    await self._send_wol_packet(self.server_name)
                     self.last_request_sent[wol_debounce_key] = timestamp
         else:
             logger.info(f"skipping endpoint call for {uri}")
