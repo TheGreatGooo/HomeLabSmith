@@ -81,6 +81,8 @@ class NGINXConfigMapUpdater:
         """Create NGINX location block for a model"""
         # Get hostname from environment variable or default to localhost
         hostname = os.environ.get('PROXY_HOSTNAME', 'localhost')
+        # JSON response for OpenAI-compatible /v1/models endpoint
+        models_json = f'{{"models":[{{"name":"{model_name}","model":"{model_name}","modified_at":"","size":"","digest":"","type":"model","description":"","tags":[""],"capabilities":["completion"],"parameters":"","details":{{"parent_model":"","format":"gguf","family":"","families":[""],"parameter_size":"","quantization_level":""}}}}],"object":"list","data":[{{"id":"{model_name}","object":"model","created":1766686673,"owned_by":"llamacpp","meta":{{}}}}]}}'
         return f"""
             location /{model_name}/ {{
                 proxy_pass http://{hostname}:{port}/;
@@ -88,6 +90,10 @@ class NGINXConfigMapUpdater:
                 proxy_set_header X-Real-IP $remote_addr;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                 proxy_set_header X-Forwarded-Proto $scheme;
+            }}
+            location /{model_name}/v1/models {{
+                add_header Content-Type application/json;
+                return 200 '{models_json}';
             }}"""
     
     def generate_nginx_config(self, models):
@@ -106,7 +112,7 @@ class NGINXConfigMapUpdater:
         for model in models:
             model_name = model.get('model_name')
             # Pattern should be the location path (e.g., /model_name/)
-            pattern = f"/{model_name}/"
+            pattern = f"/{model_name}/v1/chat/"
             # Endpoint should be http://<MODEL_MONITOR_SERVICE_URL>/models/<model_name>/report
             endpoint = f"{self.inference_service_url}/models/{model_name}/report"
             config_entries.append({
