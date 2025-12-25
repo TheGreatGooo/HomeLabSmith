@@ -131,7 +131,7 @@ class NGINXConfigMapUpdater:
             config_entries.append({
                 "pattern": pattern,
                 "endpoint": endpoint,
-                "endpoint_502": f"{self.inference_service_url}/models/{model_name}/start"
+                "endpoint_429": f"{self.inference_service_url}/models/{model_name}/start"
             })
         return config_entries
     
