@@ -92,7 +92,7 @@ class NGINXConfigMapUpdater:
                 proxy_set_header X-Forwarded-Proto $scheme;
             }}
             location /{model_name}/v1/models {{
-                add_header Content-Type application/json;
+                default_type application/json;
                 return 200 '{models_json}';
             }}"""
     
