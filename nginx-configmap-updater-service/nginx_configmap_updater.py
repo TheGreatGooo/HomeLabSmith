@@ -222,7 +222,7 @@ class NGINXConfigMapUpdater:
             }
             
             response = requests.post(
-                f"{self.open_webui_url}/openai/config",
+                f"{self.open_webui_url}/openai/config/update",
                 json=payload,
                 headers=headers,
                 timeout=10
