@@ -112,8 +112,8 @@ class NGINXConfigMapUpdater:
         retry_block = """
     location @retry {
         add_header Retry-After 60 always;
-        default_type text/plain;
-        return 429 "Service temporarily unavailable. Please try again in 60 seconds.";
+        default_type application/json;
+        return 429 "{}";
     }"""
         location_blocks.append(retry_block)
         
