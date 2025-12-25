@@ -90,6 +90,9 @@ class NGINXConfigMapUpdater:
                 proxy_set_header X-Real-IP $remote_addr;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                 proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_next_upstream error timeout invalid_header http_500 http_502 http_503;
+                proxy_next_upstream_tries 1;
+                error_page 502 = @retry;
             }}
             location /{model_name}/v1/models {{
                 default_type application/json;
@@ -104,6 +107,16 @@ class NGINXConfigMapUpdater:
             port = model.get('port')
             if model_name and port:
                 location_blocks.append(self.create_nginx_location_block(model_name, port))
+        
+        # Add shared retry location block at the end
+        retry_block = """
+    location @retry {
+        add_header Retry-After 60;
+        add_header Content-Type text/plain;
+        return 429 "Service temporarily unavailable. Please try again in 60 seconds.";
+    }"""
+        location_blocks.append(retry_block)
+        
         return '\n'.join(location_blocks)
     
     def generate_config_json_entries(self, models):
