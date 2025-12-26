@@ -217,19 +217,17 @@ def check_and_shutdown_idle_models():
     all_models_idle = True
     latest_activity = None
     idle_threshold = timedelta(minutes=config['monitoring']['idle_threshold_minutes']*3)
-    
-    for model_name in running_models:
-        # Only process models that are in our available models list
-        if model_name in available_model_names:
-            if not is_model_idle(model_name):
-                all_models_idle = False
-                break
-            else:
-                # Track the latest activity timestamp among idle models
-                last_activity = get_last_activity(model_name)
-                if last_activity:
-                    if latest_activity is None or last_activity > latest_activity:
-                        latest_activity = last_activity
+
+    if model_name in available_model_names:
+        if not is_model_idle(model_name):
+            all_models_idle = False
+            break
+        else:
+            # Track the latest activity timestamp among idle models
+            last_activity = get_last_activity(model_name)
+            if last_activity:
+                if latest_activity is None or last_activity > latest_activity:
+                    latest_activity = last_activity
     
     # If all models are idle for more than the threshold, shutdown the system
     if all_models_idle and latest_activity:
