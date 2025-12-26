@@ -234,6 +234,7 @@ def check_and_shutdown_idle_models():
     # If all models are idle for more than the threshold, shutdown the system
     if all_models_idle and latest_activity:
         # Check if all models have been idle for longer than the threshold
+        logger.info(f"Idle threashold: {str(idle_threshold)}")
         if datetime.now() - latest_activity > idle_threshold:
             logger.info("All models have been idle for more than the threshold, shutting down system...")
             execute_shutdown()
