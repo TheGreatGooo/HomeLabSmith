@@ -217,8 +217,8 @@ def check_and_shutdown_idle_models():
     all_models_idle = True
     latest_activity = None
     idle_threshold = timedelta(minutes=config['monitoring']['idle_threshold_minutes']*3)
-
-    if model_name in available_model_names:
+    
+    for model_name in available_model_names:
         if not is_model_idle(model_name):
             all_models_idle = False
             break
